@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutDirection="ltr"
+    tools:context="ran.tmpTest.SettingFragment">
+
+
+    <TextView
+        android:id="@+id/topHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/eventsList"
+        android:textSize="36sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dragAndDropListEvents"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@id/selectList"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topHeader"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dragAndDropListGames"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="invisible"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@id/selectList"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topHeader"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <EditText
+        android:id="@+id/eventOrGameEditText"
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:hint="@string/enterEventName"
+        android:textAlignment="textStart"
+        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:textSize="22sp"
+        app:layout_constraintBottom_toTopOf="@id/editBtn"
+        app:layout_constraintTop_toBottomOf="@id/selectList" />
+
+    <Button
+        android:id="@+id/addBtn"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="0dp"
+        android:layout_height="55dp"
+        android:text="@string/addEvent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/whereToAdd" />
+
+    <Button
+        android:id="@+id/deleteBtn"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="150dp"
+        android:layout_height="55dp"
+        android:text="@string/deleteEvent"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent" />
+
+    <Button
+        android:id="@+id/editBtn"
+        style="@android:style/Widget.Holo.Button"
+        android:layout_width="0dp"
+        android:layout_height="55dp"
+        android:text="@string/renameEvent"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/deleteBtn"
+        app:layout_constraintTop_toBottomOf="@id/eventOrGameEditText" />
+
+
+    <RadioGroup
+        android:id="@+id/whereToAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="55dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent">
+
+        <RadioButton
+            android:id="@+id/addToUp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/toTopOfTheList" />
+
+        <RadioButton
+            android:id="@+id/addToDown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="@string/toBottomOfTheList" />
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/selectList"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:background="@drawable/radio_group_outline"
+        android:orientation="horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/eventOrGameEditText"
+        app:layout_constraintBottom_toTopOf="@id/eventOrGameEditText"
+       >
+
+        <RadioButton
+            android:id="@+id/gamesList"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@drawable/no_chosen_radio_button"
+            android:button="@null"
+            android:gravity="center"
+            android:text="@string/editGames"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/evetnsList"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@drawable/no_chosen_radio_button"
+            android:button="@null"
+            android:checked="true"
+            android:gravity="center"
+            android:text="@string/editEvents"
+            android:textSize="24sp" />
+    </RadioGroup>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

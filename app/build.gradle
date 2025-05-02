@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+}
+
+android {
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "ran.tmpTest"
+        minSdk 21
+        targetSdk 34
+        versionCode 18
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_16
+        targetCompatibility JavaVersion.VERSION_16
+    }
+    namespace 'ran.tmpTest'
+}
+
+dependencies {
+
+    implementation files('libs/poi-3.7.jar')
+    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+}

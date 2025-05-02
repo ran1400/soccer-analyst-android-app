@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">אנליסט כדורגל</string>
+    <string name="events">אירועים</string>
+    <string name="settings">הגדרות</string>
+    <string name="game">משחק</string>
+    <string name="addGameInTheSettings">הוסף משחק בהגדרות</string>
+    <string name="addEventsInTheSettings">הוסף אירועים בהגדרות</string>
+    <string name="theEventWasRecorded">האירוע נרשם</string>
+    <string name="cancel">ביטול</string>
+    <string name="save">שמור</string>
+    <string name="theEventIsDeleted">האירוע נמחק</string>
+    <string name="theGamesListIsEmptyAddGameInTheSettings">רשימת המשחקים ריקה\nהוסף משחק בהגדרות</string>
+    <string name="noEventsHaveBeenRecordedYet">לא נרשמו אירועים עדיין</string>
+    <string name="swipeTDelete">החלק למחיקה</string>
+    <string name="failedToSaveTheFile">שמירת הקובץ נכשלה</string>
+    <string name="theFileIsSavedInTheDownloadsFolder">הקובץ נשמר בתיקיית הורדות</string>
+    <string name="saveAsAFile">שמור כקובץ 📁</string>
+    <string name="homeTeam">קבוצה ביתית</string>
+    <string name="awayTeam">קבוצה אורחת</string>
+    <string name="half1">מחצית 1</string>
+    <string name="half2">מחצית 2</string>
+    <string name="extraTime1">הארכה 1</string>
+    <string name="extraTime2">הארכה 2</string>
+    <string name="playerNumber">מספר שחקן</string>
+    <string name="saveTheTimeOrCustomizedEvent">שמירת השעון / אירוע בהתאמה אישית</string>
+    <string name="gamesList">רשימת משחקים</string>
+    <string name="eventsList">רשימת אירועים</string>
+    <string name="editGames">ערוך משחקים</string>
+    <string name="editEvents">ערוך אירועים</string>
+    <string name="enterEventName">הכנס שם אירוע</string>
+    <string name="enterGameName">הכנס שם משחק</string>
+    <string name="toTopOfTheList">לראש הרשימה</string>
+    <string name="toBottomOfTheList">לסוף הרשימה</string>
+    <string name="addEvent">הוסף אירוע</string>
+    <string name="deleteEvent">מחק אירוע</string>
+    <string name="renameEvent">שנה שם אירוע</string>
+    <string name="addGame">הוסף משחק</string>
+    <string name="deleteGame">מחק משחק</string>
+    <string name="renameGame">שנה שם משחק</string>
+
+
+
+
+
+</resources>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainActivity"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutDirection="ltr"
+    tools:context="ran.tmpTest.MainActivity">
+
+
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/space1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </FrameLayout>
+
+    <View
+        android:id="@+id/divider"
+        style="android.R.style.Widget_Holo_Light"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toTopOf="@+id/gameButton" />
+
+    <Space
+        android:id="@+id/space1"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/divider" />
+
+
+    <Button
+        android:id="@+id/gameButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="gameBtn"
+        android:textAllCaps="false"
+        android:text="@string/game"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/settingButton"
+        app:layout_constraintStart_toEndOf="@+id/eventsButton" />
+
+    <Button
+
+        android:id="@+id/settingButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="settingBtn"
+        android:text="@string/settings"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/gameButton" />
+
+    <Button
+        android:id="@+id/eventsButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:onClick="eventsBtn"
+        android:textAllCaps="false"
+        android:text="@string/events"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/gameButton"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

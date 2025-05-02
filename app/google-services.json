@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "913749086831",
+    "project_id": "socceranalysis-4634f",
+    "storage_bucket": "socceranalysis-4634f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913749086831:android:e99c7411988042192d339a",
+        "android_client_info": {
+          "package_name": "ran.tmpTest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "913749086831-3a8347unkhc52rq9sslbtpo48t6igh54.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjAHrM7if20F58KwwoUNyFKEhA2Baez18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "913749086831-3a8347unkhc52rq9sslbtpo48t6igh54.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
