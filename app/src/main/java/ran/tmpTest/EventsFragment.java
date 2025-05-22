@@ -1,12 +1,18 @@
 package ran.tmpTest;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +33,7 @@ import ran.tmpTest.alertDialogs.EventAlertDialog;
 import ran.tmpTest.sharedData.AppData;
 import ran.tmpTest.utils.Event;
 import ran.tmpTest.utils.ExelHandel;
+import ran.tmpTest.utils.Game;
 import ran.tmpTest.utils.lists.SwipeToDeleteList;
 
 import java.util.ArrayList;
@@ -44,6 +51,8 @@ public class EventsFragment extends Fragment
 
     private TextView msgToUser;
     private View view;
+
+    ActivityResultLauncher<Intent> createFileLauncher;
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -73,6 +82,7 @@ public class EventsFragment extends Fragment
         eventsList.setLayoutManager(new LinearLayoutManager(view.getContext()));
         createEventsList();
         createChoseGameDropDownList();
+        createFileLauncher = createFileLauncher();
         return view;
     }
 
@@ -185,19 +195,43 @@ public class EventsFragment extends Fragment
 
     }
 
-    public void saveFileBtn(View view)
+    private ActivityResultLauncher<Intent> createFileLauncher()
     {
-        ExelHandel exelHandel = new ExelHandel(AppData.games.get(gameChosen));
+        return registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result ->
+                {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null)
+                    {
+                        Uri uri = result.getData().getData();
+                        if (uri != null)
+                            saveFile(AppData.games.get(gameChosen),uri);
+                    }
+                }
+        );
+    }
+
+    private void saveFile(Game game, Uri uri)
+    {
+        ExelHandel exelHandel = new ExelHandel(game,requireContext(),uri);
         boolean success =  exelHandel.makeEventsFile();
         if (success)
-            AppData.mainActivity.showSnackBar(getString(R.string.theFileIsSavedInTheDownloadsFolder),1000);
+            AppData.mainActivity.showSnackBar(getString(R.string.theFileIsSaved),1000);
         else
             AppData.mainActivity.showSnackBar(getString(R.string.failedToSaveTheFile),1000);
     }
 
+    public void saveFileBtn(View view)
+    {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        intent.putExtra(Intent.EXTRA_TITLE,AppData.games.get(gameChosen).makeFileName());
+        createFileLauncher.launch(intent);
+    }
+
     public void createChoseGameDropDownList()
     {
-
         ArrayAdapter<String>adapter = new ArrayAdapter(getActivity(),
                                                        android.R.layout.simple_spinner_item,AppData.gamesStringList);
         adapter.setDropDownViewResource(R.layout.spinner_item);

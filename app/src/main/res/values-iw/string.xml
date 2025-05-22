@@ -13,7 +13,7 @@
     <string name="noEventsHaveBeenRecordedYet">לא נרשמו אירועים עדיין</string>
     <string name="swipeTDelete">החלק למחיקה</string>
     <string name="failedToSaveTheFile">שמירת הקובץ נכשלה</string>
-    <string name="theFileIsSavedInTheDownloadsFolder">הקובץ נשמר בתיקיית הורדות</string>
+    <string name="theFileIsSaved">הקובץ נשמר</string>
     <string name="saveAsAFile">שמור כקובץ 📁</string>
     <string name="homeTeam">קבוצה ביתית</string>
     <string name="awayTeam">קבוצה אורחת</string>

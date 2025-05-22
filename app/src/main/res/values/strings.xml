@@ -13,7 +13,7 @@
     <string name="noEventsHaveBeenRecordedYet">No events have been recorded yet</string>
     <string name="swipeTDelete">Swipe to delete</string>
     <string name="failedToSaveTheFile">Failed to save the file</string>
-    <string name="theFileIsSavedInTheDownloadsFolder">The file is saved in the downloads folder</string>
+    <string name="theFileIsSaved">The file is saved</string>
     <string name="saveAsAFile">Save as a file 📁</string>
     <string name="homeTeam">Home team</string>
     <string name="awayTeam">Away team</string>

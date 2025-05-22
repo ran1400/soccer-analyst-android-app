@@ -1,48 +1,42 @@
 package ran.tmpTest.utils;
 
+import android.content.Context;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.OutputStream;
 import java.util.List;
-import java.util.Locale;
-
 
 public class ExelHandel
 {
     private Game game;
+    private Uri uri;
+    private Context context;
     private Cell cell;
     private Sheet sheet;
     private Workbook workbook = new HSSFWorkbook();
     private CellStyle headerCellStyle;
 
-    public ExelHandel(Game game)
+    public ExelHandel(Game game,Context context,Uri uri)
     {
         this.game = game;
+        this.uri = uri;
+        this.context = context;
     }
     public boolean makeEventsFile()
-    {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss", Locale.getDefault());
-        String time = sdf.format(new Date());
-        String fixedGameName = game.gameName.replaceAll("[\\\\/:*?\"<>|]", "-");
-        String fileName = fixedGameName + " " + time + ".xls";
-        return makeEventsFileHelper(fileName);
-    }
-
-    private boolean makeEventsFileHelper(String fileName)
     {
         boolean isWorkbookWrittenIntoStorage;
 
@@ -53,21 +47,20 @@ public class ExelHandel
             return false;
         }
 
-        // Creating a New HSSF Workbook (.xls format)
-        workbook = new HSSFWorkbook();
+
+        workbook = new XSSFWorkbook();
 
         setHeaderCellStyle();
-        sheet = workbook.createSheet(fileName);
+        sheet = workbook.createSheet(game.gameName);
         sheet.setColumnWidth(0, (7 * 400));
         sheet.setColumnWidth(1, (4 * 400));
         sheet.setColumnWidth(2, (7 * 400));
         sheet.setColumnWidth(3, (6 * 400));
         sheet.setColumnWidth(4, (15 * 400));
 
-
         setHeaders();
         fillData();
-        isWorkbookWrittenIntoStorage = storeExcelInStorage(fileName);
+        isWorkbookWrittenIntoStorage = storeExcelInStorage();
 
         return isWorkbookWrittenIntoStorage;
     }
@@ -126,49 +119,25 @@ public class ExelHandel
 
     private void setHeaderCellStyle()
     {
-        headerCellStyle = workbook.createCellStyle();
-        headerCellStyle.setFillForegroundColor(HSSFColor.AQUA.index);
-        headerCellStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
-        headerCellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        XSSFCellStyle xssfCellStyle = (XSSFCellStyle) workbook.createCellStyle();
+        xssfCellStyle.setFillForegroundColor(IndexedColors.AQUA.getIndex());
+        xssfCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        xssfCellStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerCellStyle = xssfCellStyle;
     }
 
-    private boolean storeExcelInStorage(String fileName)
+    private boolean storeExcelInStorage()
     {
-        boolean isSuccess;
-        File downloadPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File file = new File(downloadPath ,fileName);
-        FileOutputStream fileOutputStream = null;
         try
         {
-            fileOutputStream = new FileOutputStream(file);
-            workbook.write(fileOutputStream);
-            Log.d("exelHandel", "Writing file" + file);
-            isSuccess = true;
-        }
-        catch (IOException e)
-        {
-            Log.d("exelHandel", "Error writing Exception: ", e);
-            isSuccess = false;
+            OutputStream outputStream = context.getContentResolver().openOutputStream(uri);
+            workbook.write(outputStream);
+            return true;
         }
         catch (Exception e)
         {
-            Log.d("exelHandel", "Failed to save file due to Exception: ", e);
-            isSuccess = false;
+            return false;
         }
-        finally
-        {
-            try
-            {
-                if (null != fileOutputStream)
-                    fileOutputStream.close();
-
-            }
-            catch (Exception ex)
-            {
-                ex.printStackTrace();
-            }
-        }
-        return isSuccess;
     }
 
     private boolean isExternalStorageAvailable()

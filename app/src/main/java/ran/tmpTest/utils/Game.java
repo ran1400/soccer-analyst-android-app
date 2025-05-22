@@ -1,7 +1,10 @@
 package ran.tmpTest.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class Game
 {
@@ -17,5 +20,13 @@ public class Game
     {
         int lestEventIndex = events.size() -1;
         events.remove(lestEventIndex);
+    }
+
+    public String makeFileName()
+    {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss", Locale.getDefault());
+        String time = sdf.format(new Date());
+        String fixedGameName = gameName.replaceAll("[\\\\/:*?\"<>|]", "-");
+        return fixedGameName + "  " + time;
     }
 }
