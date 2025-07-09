@@ -46,6 +46,48 @@ public class MainActivity extends AppCompatActivity
     protected void onPause()
     {
         super.onPause();
+        saveDataToMemory();
+        clockHandler.removeCallbacks(clockThread);
+    }
+
+    public void onResume()
+    {
+        super.onResume();
+        clockCheck();
+    }
+
+    private void getDataFromMemory()
+    {
+        EventsList events = getDataFromMemory("events",EventsList.class);
+        if (events == null)
+            AppData.events = new ArrayList<>();
+        else
+            AppData.events = events.list;
+        GamesList games = getDataFromMemory("games",GamesList.class);
+        if ( games == null)
+            AppData.games = new ArrayList<>();
+        else
+            AppData.games = games.list;
+        AppData.makeGamesStringList();
+        GameFragment.gameChosen = sharedPreferences.getInt("gameChosenGameFragment",-1);
+        EventsFragment.gameChosen = sharedPreferences.getInt("gameChosenEventsFragment",-1);
+        AppData.clockRun = sharedPreferences.getBoolean("clockRun",false);
+        Event.GamePart gamePartChosen = getDataFromMemory("gamePartChosen", Event.GamePart.class);
+        if (gamePartChosen == null)
+            AppData.gamePartChosen = Event.GamePart.HALF_1;
+        else
+            AppData.gamePartChosen = gamePartChosen;
+        Event.Team teamChosen = getDataFromMemory("teamChosen", Event.Team.class);
+        if (teamChosen == null)
+            AppData.teamChosen = Event.Team.NON;
+        else
+            AppData.teamChosen = teamChosen;
+        AppData.playerChosenDigit1 = sharedPreferences.getInt("playerChosenDigit1",0);
+        AppData.playerChosenDigit2 = sharedPreferences.getInt("playerChosenDigit2",0);
+    }
+
+    public void saveDataToMemory()
+    {
         saveDataToMemory("events",new EventsList(AppData.events));
         saveDataToMemory("games",new GamesList(AppData.games));
         editor.putBoolean("clockRun",AppData.clockRun);
@@ -61,15 +103,10 @@ public class MainActivity extends AppCompatActivity
         editor.putInt("gameChosenEventsFragment",EventsFragment.gameChosen);
         editor.putInt("playerChosenDigit1",AppData.playerChosenDigit1);
         editor.putInt("playerChosenDigit2",AppData.playerChosenDigit2);
-        editor.commit();
-        clockHandler.removeCallbacks(clockThread);
+        editor.apply();
     }
 
-    public void onResume()
-    {
-        super.onResume();
-        clockCheck();
-    }
+
 
     public View getView()
     {
@@ -115,35 +152,7 @@ public class MainActivity extends AppCompatActivity
                 AppData.gameFragment.resetClock();
     }
 
-    private void getDataFromMemory()
-    {
-        EventsList events = getDataFromMemory("events",EventsList.class);
-        if (events == null)
-            AppData.events = new ArrayList<>();
-        else
-            AppData.events = events.list;
-        GamesList games = getDataFromMemory("games",GamesList.class);
-        if ( games == null)
-            AppData.games = new ArrayList<>();
-        else
-            AppData.games = games.list;
-        AppData.makeGamesStringList();
-        GameFragment.gameChosen = sharedPreferences.getInt("gameChosenGameFragment",-1);
-        EventsFragment.gameChosen = sharedPreferences.getInt("gameChosenEventsFragment",-1);
-        AppData.clockRun = sharedPreferences.getBoolean("clockRun",false);
-        Event.GamePart gamePartChosen = getDataFromMemory("gamePartChosen", Event.GamePart.class);
-        if (gamePartChosen == null)
-            AppData.gamePartChosen = Event.GamePart.HALF_1;
-        else
-            AppData.gamePartChosen = gamePartChosen;
-        Event.Team teamChosen = getDataFromMemory("teamChosen", Event.Team.class);
-        if (teamChosen == null)
-            AppData.teamChosen = Event.Team.NON;
-        else
-            AppData.teamChosen = teamChosen;
-        AppData.playerChosenDigit1 = sharedPreferences.getInt("playerChosenDigit1",0);
-        AppData.playerChosenDigit2 = sharedPreferences.getInt("playerChosenDigit2",0);
-    }
+
 
     private void clockCheck()
     {
@@ -210,7 +219,7 @@ public class MainActivity extends AppCompatActivity
         Gson gson = new Gson();
         String json = gson.toJson(data);
         editor.putString(key, json);
-        editor.commit();
+        editor.apply();
     }
 
     public <T> T getDataFromMemory(String key,Type type)
