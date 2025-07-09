@@ -1,18 +1,12 @@
 package ran.tmpTest.sharedData;
 
-
-import android.util.Log;
-
 import ran.tmpTest.EventsFragment;
 import ran.tmpTest.GameFragment;
 import ran.tmpTest.MainActivity;
 import ran.tmpTest.SettingFragment;
 import ran.tmpTest.utils.Event;
 import ran.tmpTest.utils.Game;
-
-
 import java.util.ArrayList;
-
 import java.util.List;
 
 public class AppData

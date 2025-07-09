@@ -13,7 +13,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -148,8 +147,7 @@ public class SettingFragment extends Fragment
         recyclerView.addItemDecoration(dividerItemDecoration);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN | ItemTouchHelper.START | ItemTouchHelper.END, 0)
         {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target)
+            public boolean onMove(RecyclerView recyclerView,RecyclerView.ViewHolder viewHolder,RecyclerView.ViewHolder target)
             {
                 int fromPosition = viewHolder.getAdapterPosition();
                 int toPosition = target.getAdapterPosition();
@@ -163,9 +161,7 @@ public class SettingFragment extends Fragment
                 recyclerView.getAdapter().notifyItemMoved(fromPosition, toPosition);
                 return false;
             }
-
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {}
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {}
         });
         itemTouchHelper.attachToRecyclerView(recyclerView);
         return recyclerAdapter;

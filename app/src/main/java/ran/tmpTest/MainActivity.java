@@ -1,27 +1,13 @@
 package ran.tmpTest;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-
-import androidx.fragment.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.widget.FrameLayout;
-
-import ran.tmpTest.R;
-
 import ran.tmpTest.sharedData.AppData;
 import ran.tmpTest.utils.Event;
-import ran.tmpTest.utils.Game;
 import ran.tmpTest.utils.saveInMemoryLists.EventsList;
 import ran.tmpTest.utils.saveInMemoryLists.GamesList;
 import com.google.android.material.snackbar.Snackbar;
@@ -29,7 +15,7 @@ import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Locale;
+
 
 
 public class MainActivity extends AppCompatActivity
@@ -106,12 +92,9 @@ public class MainActivity extends AppCompatActivity
                 }
                 AppData.sec = 0;
             }
-            try
-            {
-                if (AppData.gameFragment.isVisible())
-                    AppData.gameFragment.updateClockText();
-            }
-            catch(Exception exception) {/*fragment not visible*/}
+            if (AppData.gameFragment != null)
+                if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
+                        AppData.gameFragment.updateClockText();
         }
     }
 
@@ -127,12 +110,9 @@ public class MainActivity extends AppCompatActivity
         clockHandler.removeCallbacks(clockThread);
         AppData.min = 0;
         AppData.sec = -1;
-        try
-        {
-            if (AppData.gameFragment.isVisible())
+        if (AppData.gameFragment != null)
+            if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
                 AppData.gameFragment.resetClock();
-        }
-        catch(Exception exception) {/*fragment not visible*/}
     }
 
     private void getDataFromMemory()
@@ -188,12 +168,9 @@ public class MainActivity extends AppCompatActivity
             }
             else
             {
-                try
-                {
-                    if (AppData.gameFragment.isVisible())
+                if (AppData.gameFragment != null)
+                    if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
                         AppData.gameFragment.updateClockText();
-                }
-                catch(Exception exception) {/*fragment not visible*/}
                 clockThread.run();
             }
         }

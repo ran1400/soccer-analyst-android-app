@@ -44,7 +44,6 @@ public class GameFragment extends Fragment
     private ConstraintLayout eventsScrollView;
     private Spinner choseGameDropDownList;
 
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
@@ -79,8 +78,6 @@ public class GameFragment extends Fragment
             msgToUserTextView.setVisibility(View.INVISIBLE);
         return view;
     }
-
-    @Override
     public void onPause()
     {
         super.onPause();
@@ -92,9 +89,7 @@ public class GameFragment extends Fragment
     {
         super.onResume();
         if(GameFragment.gameChosen != -1)
-        {
             choseGameDropDownList.setSelection(GameFragment.gameChosen);
-        }
         if (AppData.clockRun)
         {
             playBtn.setVisibility(View.INVISIBLE);
@@ -108,13 +103,10 @@ public class GameFragment extends Fragment
     {
         return new AdapterView.OnItemSelectedListener()
         {
-            @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
             {
                 GameFragment.gameChosen = position;
             }
-
-            @Override
             public void onNothingSelected(AdapterView<?> adapterView)
             {
                 GameFragment.gameChosen = -1;
@@ -189,7 +181,7 @@ public class GameFragment extends Fragment
         }
     }
 
-    public void setGamePartValue(int checkedId)
+    public void setGamePartValue(int checkedId) //when user click of radio btn
     {
         switch(checkedId)
         {
@@ -279,7 +271,6 @@ public class GameFragment extends Fragment
         {
             this.eventNum = eventNum ;
         }
-        @Override
         public void onClick(View v) //buttonListClick
         {
             Event event = makeEvent(eventNum);
@@ -294,7 +285,6 @@ public class GameFragment extends Fragment
         Snackbar snackBar = Snackbar.make(AppData.mainActivity.getView(),R.string.theEventWasRecorded, Snackbar.LENGTH_SHORT);
         snackBar.setAction(R.string.cancel, new View.OnClickListener()
         {
-            @Override
             public void onClick(View view)
             {
                 game.removeLestEvent();

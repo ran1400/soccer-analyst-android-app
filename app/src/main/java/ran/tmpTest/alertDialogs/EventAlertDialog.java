@@ -1,12 +1,9 @@
 package ran.tmpTest.alertDialogs;
-
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,11 +15,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import ran.tmpTest.GameFragment;
 import ran.tmpTest.R;
-
-
 import ran.tmpTest.sharedData.AppData;
 import ran.tmpTest.utils.Event;
 import ran.tmpTest.utils.Game;
@@ -43,12 +37,12 @@ public class EventAlertDialog extends AppCompatDialogFragment
     private View view;
     private Button saveBtn,cancelBtn;
 
-    public EventAlertDialog()
+    public EventAlertDialog() //create new event
     {
         eventToEdit = null;
     }
 
-    public EventAlertDialog(Event eventToEdit)
+    public EventAlertDialog(Event eventToEdit) // edit event
     {
         this.eventToEdit = eventToEdit;
     }
@@ -79,7 +73,7 @@ public class EventAlertDialog extends AppCompatDialogFragment
         setPlayerNumPickers0To9();
         GameFragment.setLayoutSize(eventsScrollView,50);
         getEventChosenHelper = addEvents(); //addEvents return the button Id of the first event in list
-        if (eventToEdit == null)
+        if (eventToEdit == null) //create new event
             setDefaultClockAndPickers();
         else
         {
@@ -130,7 +124,6 @@ public class EventAlertDialog extends AppCompatDialogFragment
     {
         dismiss();
     }
-
 
     public void saveBtn(View view)
     {
@@ -292,6 +285,5 @@ public class EventAlertDialog extends AppCompatDialogFragment
         playerDigit1NumberPicker.setMaxValue(9);
         playerDigit2NumberPicker.setMaxValue(9);
     }
-
 
 }

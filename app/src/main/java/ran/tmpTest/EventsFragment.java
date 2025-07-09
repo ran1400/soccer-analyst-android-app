@@ -11,8 +11,6 @@ import android.os.Bundle;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +20,6 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -53,14 +50,11 @@ public class EventsFragment extends Fragment
     private View view;
 
     ActivityResultLauncher<Intent> createFileLauncher;
-
-    @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
     }
 
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
@@ -124,11 +118,10 @@ public class EventsFragment extends Fragment
         Snackbar snackBar = Snackbar.make(AppData.mainActivity.getView(),R.string.theEventIsDeleted, Snackbar.LENGTH_LONG);
         snackBar.setAction(R.string.cancel, new View.OnClickListener()
         {
-            @Override
             public void onClick(View view)
             {
                 if (listToShow.isEmpty())
-                    msgToUser.setVisibility(View.INVISIBLE); //remove the msg of empty list
+                    msgToUser.setVisibility(View.INVISIBLE); //remove the msg if the list is empty
                 listToShow.add(position,eventToRemove); //user decide to cancel the delete event action
                 swipeToDeleteList.listData.add(position,eventToRemove.toString());
                 swipeToDeleteList.notifyDataSetChanged();
@@ -142,27 +135,22 @@ public class EventsFragment extends Fragment
         swipeToDeleteList.notifyDataSetChanged();
     }
 
-    private void createEventsList()
+    private void createEventsList() //swipe to delete list
     {
-
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT)
         {
             private Paint paint = new Paint();
             private TextView swipeToDeleteText;
-
-            @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target)
+            public boolean onMove(RecyclerView recyclerView,RecyclerView.ViewHolder viewHolder,RecyclerView.ViewHolder target)
             {
                 return false;
             }
 
-            @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction)
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction)
             {
                 userSwipeItemLeft(viewHolder.getAdapterPosition());
             }
 
-            @Override
             public void onChildDraw(Canvas canvas,RecyclerView recyclerView,RecyclerView.ViewHolder viewHolder,
                                     float dX, float dY, int actionState, boolean isCurrentlyActive)
             {
@@ -191,8 +179,6 @@ public class EventsFragment extends Fragment
         };
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
         itemTouchHelper.attachToRecyclerView(eventsList);
-
-
     }
 
     private ActivityResultLauncher<Intent> createFileLauncher()
@@ -205,7 +191,7 @@ public class EventsFragment extends Fragment
                     {
                         Uri uri = result.getData().getData();
                         if (uri != null)
-                            saveFile(AppData.games.get(gameChosen),uri);
+                            saveFile(AppData.games.get(gameChosen),uri); // do toasts
                     }
                 }
         );
@@ -238,7 +224,6 @@ public class EventsFragment extends Fragment
         chooseGameDropDownList.setAdapter(adapter);
         chooseGameDropDownList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
-            @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l)
             {
                 gameChosen = position;
@@ -246,7 +231,6 @@ public class EventsFragment extends Fragment
                 showGameEvents();
                 swipeToDeleteList.notifyDataSetChanged();
             }
-            @Override
             public void onNothingSelected(AdapterView<?> adapterView)
             {
                 gameChosen = -1;

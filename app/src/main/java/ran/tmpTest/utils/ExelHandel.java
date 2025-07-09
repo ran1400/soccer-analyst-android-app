@@ -108,7 +108,7 @@ public class ExelHandel
     private void setHeaders()
     {
         Row row = sheet.createRow(0);
-        String headers[] = {"game part","clock","team","player num","event"};
+        String[] headers = {"game part","clock","team","player num","event"};
         for (int i = 0 ; i < headers.length ; i++)
         {
             cell = row.createCell(i);
