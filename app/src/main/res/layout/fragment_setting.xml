@@ -133,7 +133,7 @@
             android:textSize="24sp" />
 
         <RadioButton
-            android:id="@+id/evetnsList"
+            android:id="@+id/eventsList"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_weight="1"

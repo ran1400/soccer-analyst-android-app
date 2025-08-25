@@ -4,6 +4,9 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import ran.tmpTest.sharedData.AppData;
 import ran.tmpTest.utils.lists.DragAndDropList;
-import ran.tmpTest.utils.Game;
 
 import java.util.Collections;
 import java.util.List;
@@ -53,9 +55,9 @@ public class SettingFragment extends Fragment
         deleteBtn.setOnClickListener((View) -> deleteBtn());
         editBtn.setOnClickListener((View) -> editBtn());
         addBtn.setOnClickListener((View) -> addBtn());
-        eventsDragAndDropList = createDragAndDropList(AppData.events,eventsListView);
-        gamesDragAndDropList = createDragAndDropList(AppData.gamesStringList,gamesListView);
-        listToShow = AppData.events;
+        eventsDragAndDropList = createDragAndDropList(AppData.dbRepository.eventRepository.eventNames, eventsListView);
+        gamesDragAndDropList = createDragAndDropList(AppData.dbRepository.gameRepository.gameNames, gamesListView);
+        listToShow = AppData.dbRepository.eventRepository.eventNames;
         selectListRadioGroup.setOnCheckedChangeListener((radioGroup, checkedId) -> onListChange(checkedId));
         return view;
     }
@@ -70,13 +72,13 @@ public class SettingFragment extends Fragment
     {
         super.onStop();
         dismissKeyboard();
-        if(AppData.listChoosePosition != -1)
+        if(AppData.SettingFragmentData.listChoosePosition != -1)
         {
-            AppData.listChoosePosition = -1;
-            if (listToShow == AppData.events)
-                eventsDragAndDropList.notifyItemChanged(AppData.listChoosePosition);
+            AppData.SettingFragmentData.listChoosePosition = -1;
+            if (listToShow == AppData.dbRepository.eventRepository.eventNames)
+                eventsDragAndDropList.notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
             else //listToShow == AppData.gamesStringList
-                gamesDragAndDropList.notifyItemChanged(AppData.listChoosePosition);
+                gamesDragAndDropList.notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
         }
     }
 
@@ -91,8 +93,8 @@ public class SettingFragment extends Fragment
         switch(checkedId)
         {
             case R.id.gamesList:
-                listToShow = AppData.gamesStringList;
-                eventsDragAndDropList.notifyItemChanged(AppData.listChoosePosition);
+                listToShow = AppData.dbRepository.gameRepository.gameNames;
+                eventsDragAndDropList.notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
                 gamesListView.setVisibility(View.VISIBLE);
                 eventsListView.setVisibility(View.INVISIBLE);
                 headerTextView.setText(getString(R.string.gamesList));
@@ -101,9 +103,9 @@ public class SettingFragment extends Fragment
                 editBtn.setText(getString(R.string.renameGame));
                 deleteBtn.setText(getString(R.string.deleteGame));
                 break;
-            case R.id.evetnsList :
-                listToShow = AppData.events;
-                gamesDragAndDropList.notifyItemChanged(AppData.listChoosePosition);
+            case R.id.eventsList :
+                listToShow = AppData.dbRepository.eventRepository.eventNames;
+                gamesDragAndDropList.notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
                 gamesListView.setVisibility(View.INVISIBLE);
                 eventsListView.setVisibility(View.VISIBLE);
                 headerTextView.setText(getString(R.string.eventsList));
@@ -118,7 +120,7 @@ public class SettingFragment extends Fragment
 
     public void changeToUserChoseItemMode()
     {
-        eventOrGameEditText.setText(listToShow.get(AppData.listChoosePosition));
+        eventOrGameEditText.setText(listToShow.get(AppData.SettingFragmentData.listChoosePosition));
         deleteBtn.setVisibility(View.VISIBLE);
         editBtn.setVisibility(View.VISIBLE);
         addBtn.setVisibility(View.INVISIBLE);
@@ -127,17 +129,18 @@ public class SettingFragment extends Fragment
 
     public void updateEventOrGameEditText()
     {
-        eventOrGameEditText.setText(listToShow.get(AppData.listChoosePosition));
+        eventOrGameEditText.setText(listToShow.get(AppData.SettingFragmentData.listChoosePosition));
     }
 
     public void changeToNoneChoseItemMode()
     {
-        AppData.listChoosePosition = -1;
+        AppData.SettingFragmentData.listChoosePosition = -1;
         eventOrGameEditText.setText("");
         deleteBtn.setVisibility(View.INVISIBLE);
         editBtn.setVisibility(View.INVISIBLE);
         addBtn.setVisibility(View.VISIBLE);
         addToTopOrBottomRadioGroup.setVisibility(View.VISIBLE);
+
     }
     public DragAndDropList createDragAndDropList(List<String> list,RecyclerView recyclerView)
     {
@@ -151,13 +154,14 @@ public class SettingFragment extends Fragment
             {
                 int fromPosition = viewHolder.getAdapterPosition();
                 int toPosition = target.getAdapterPosition();
-                Collections.swap(listToShow, fromPosition, toPosition);
-                if (listToShow == AppData.gamesStringList )
-                {
-                    Collections.swap(AppData.games, fromPosition, toPosition);
-                    changeSelectedGamePosition(fromPosition,toPosition);
-                }
                 changeChoosePosition(fromPosition,toPosition);
+                if (selectListRadioGroup.getCheckedRadioButtonId() == R.id.gamesList )
+                {
+                    changeSelectedGamePosition(fromPosition,toPosition);
+                    AppData.dbRepository.gameRepository.moveGame(fromPosition,toPosition);
+                }
+                else // selectListRadioGroup.getCheckedRadioButtonId() == R.id.eventsList
+                    AppData.dbRepository.eventRepository.moveEvent(fromPosition,toPosition);
                 recyclerView.getAdapter().notifyItemMoved(fromPosition, toPosition);
                 return false;
             }
@@ -167,36 +171,37 @@ public class SettingFragment extends Fragment
         return recyclerAdapter;
     }
 
+
     public void changeSelectedGamePosition(int fromPosition,int toPosition)
     {
-        if(GameFragment.gameChosen != -1)
+        if(AppData.GameFragmentData.gameChosen != -1)
         {
-            if (GameFragment.gameChosen == fromPosition)
-                GameFragment.gameChosen = toPosition;
-            else if (fromPosition < GameFragment.gameChosen && toPosition >= GameFragment.gameChosen)
-                GameFragment.gameChosen--;
-            else if (fromPosition > GameFragment.gameChosen && toPosition <= GameFragment.gameChosen)
-                GameFragment.gameChosen++;
+            if (AppData.GameFragmentData.gameChosen == fromPosition)
+                AppData.GameFragmentData.gameChosen = toPosition;
+            else if (fromPosition < AppData.GameFragmentData.gameChosen && toPosition >= AppData.GameFragmentData.gameChosen)
+                AppData.GameFragmentData.gameChosen--;
+            else if (fromPosition > AppData.GameFragmentData.gameChosen && toPosition <= AppData.GameFragmentData.gameChosen)
+                AppData.GameFragmentData.gameChosen++;
         }
-        if (EventsFragment.gameChosen != -1)
+        if (AppData.EventsFragmentsData.gameChosen != -1)
         {
-            if (EventsFragment.gameChosen == fromPosition)
-                EventsFragment.gameChosen = toPosition;
-            else if (fromPosition < EventsFragment.gameChosen && toPosition >= EventsFragment.gameChosen)
-                EventsFragment.gameChosen--;
-            else if (fromPosition > EventsFragment.gameChosen && toPosition <= EventsFragment.gameChosen)
-                EventsFragment.gameChosen++;
+            if (AppData.EventsFragmentsData.gameChosen == fromPosition)
+                AppData.EventsFragmentsData.gameChosen = toPosition;
+            else if (fromPosition < AppData.EventsFragmentsData.gameChosen && toPosition >= AppData.EventsFragmentsData.gameChosen)
+                AppData.EventsFragmentsData.gameChosen--;
+            else if (fromPosition > AppData.EventsFragmentsData.gameChosen && toPosition <= AppData.EventsFragmentsData.gameChosen)
+                AppData.EventsFragmentsData.gameChosen++;
         }
     }
 
     public void changeChoosePosition(int fromPosition,int toPosition)
     {
-        if (AppData.listChoosePosition == fromPosition)
-            AppData.listChoosePosition = toPosition;
-        else if (fromPosition < AppData.listChoosePosition && toPosition >= AppData.listChoosePosition)
-            AppData.listChoosePosition--;
-        else if (fromPosition > AppData.listChoosePosition && toPosition <= AppData.listChoosePosition)
-            AppData.listChoosePosition++;
+        if (AppData.SettingFragmentData.listChoosePosition == fromPosition)
+            AppData.SettingFragmentData.listChoosePosition = toPosition;
+        else if (fromPosition < AppData.SettingFragmentData.listChoosePosition && toPosition >= AppData.SettingFragmentData.listChoosePosition)
+            AppData.SettingFragmentData.listChoosePosition--;
+        else if (fromPosition > AppData.SettingFragmentData.listChoosePosition && toPosition <= AppData.SettingFragmentData.listChoosePosition)
+            AppData.SettingFragmentData.listChoosePosition++;
     }
 
     private void editBtn()
@@ -207,74 +212,84 @@ public class SettingFragment extends Fragment
             Toast.makeText(getActivity(), eventOrGameEditText.getHint(), Toast.LENGTH_SHORT).show();
             return;
         }
-        listToShow.set(AppData.listChoosePosition, changeToName);
         eventOrGameEditText.setText("");
-        if (listToShow == AppData.events)
-            eventsDragAndDropList.notifyItemChanged(AppData.listChoosePosition);
-        else //listToShow == AppData.gamesStringList
+        if (selectListRadioGroup.getCheckedRadioButtonId() == R.id.eventsList )
         {
-            AppData.games.get(AppData.listChoosePosition).gameName = changeToName;
-            gamesDragAndDropList.notifyItemChanged(AppData.listChoosePosition);
+            AppData.dbRepository.eventRepository.updateEventName(AppData.SettingFragmentData.listChoosePosition,changeToName);
+            eventsDragAndDropList.notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
+        }
+        else //selectListRadioGroup.getCheckedRadioButtonId() == R.id.gamesList
+        {
+            AppData.dbRepository.gameRepository.updateGameName(AppData.SettingFragmentData.listChoosePosition,changeToName);
+            gamesDragAndDropList.notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
         }
         changeToNoneChoseItemMode(); // this fun change AppData.listChoosePosition to -1
     }
 
     private void deleteBtn()
     {
-        if (listToShow == AppData.gamesStringList)
+        if (selectListRadioGroup.getCheckedRadioButtonId() == R.id.gamesList)
         {
-            AppData.games.remove(AppData.listChoosePosition);
-            if(GameFragment.gameChosen == AppData.listChoosePosition)
-                GameFragment.gameChosen = -1;
-            else if (GameFragment.gameChosen > AppData.listChoosePosition)
-                GameFragment.gameChosen--;
-            if(EventsFragment.gameChosen == AppData.listChoosePosition)
-                EventsFragment.gameChosen = -1;
-            else if (EventsFragment.gameChosen > AppData.listChoosePosition)
-                EventsFragment.gameChosen--;
-            AppData.gamesStringList.remove(AppData.listChoosePosition);
-            gamesDragAndDropList.notifyItemRemoved(AppData.listChoosePosition);
+            AppData.dbRepository.gameRepository.deleteGame(AppData.SettingFragmentData.listChoosePosition);
+            if(AppData.GameFragmentData.gameChosen == AppData.SettingFragmentData.listChoosePosition)
+                AppData.GameFragmentData.gameChosen = -1;
+            else if (AppData.GameFragmentData.gameChosen > AppData.SettingFragmentData.listChoosePosition)
+                AppData.GameFragmentData.gameChosen--;
+            if(AppData.EventsFragmentsData.gameChosen == AppData.SettingFragmentData.listChoosePosition)
+                AppData.EventsFragmentsData.gameChosen = -1;
+            else if (AppData.EventsFragmentsData.gameChosen > AppData.SettingFragmentData.listChoosePosition)
+                AppData.EventsFragmentsData.gameChosen--;
+            gamesDragAndDropList.notifyItemRemoved(AppData.SettingFragmentData.listChoosePosition);
         }
-        else //listToShow == AppData.events
+        else //selectListRadioGroup.getCheckedRadioButtonId() == R.id.eventsList
         {
-            AppData.events.remove(AppData.listChoosePosition);
-            eventsDragAndDropList.notifyItemRemoved(AppData.listChoosePosition);
+            AppData.dbRepository.eventRepository.deleteEvent(AppData.SettingFragmentData.listChoosePosition);
+            eventsDragAndDropList.notifyItemRemoved(AppData.SettingFragmentData.listChoosePosition);
         }
         eventOrGameEditText.setText("");
         changeToNoneChoseItemMode();
     }
     private void addBtn()
     {
+        AppData.dbRepository.gameRepository.test();
+        AppData.dbRepository.eventRepository.test();
+        AppData.dbRepository.eventInGameRepository.test();
         String newName = eventOrGameEditText.getText().toString();
         if (newName.isEmpty())
         {
             Toast.makeText(getActivity(), eventOrGameEditText.getHint(), Toast.LENGTH_SHORT).show();
             return;
         }
-        DragAndDropList crntList ;
-        if (listToShow == AppData.events)
-            crntList = eventsDragAndDropList;
-        else //listToShow == AppData.gamesStringList
-            crntList = gamesDragAndDropList;
+
         if ( addToTopOrBottomRadioGroup.getCheckedRadioButtonId() == R.id.addToUp )
         {
-            if (listToShow == AppData.gamesStringList)
+            if (selectListRadioGroup.getCheckedRadioButtonId() == R.id.gamesList)
             {
-                AppData.games.add(0, new Game(newName));
-                if(GameFragment.gameChosen != -1)
-                    GameFragment.gameChosen++;
-                if(EventsFragment.gameChosen != -1)
-                    EventsFragment.gameChosen++;
+                AppData.dbRepository.gameRepository.addGameAtStart(newName);
+                if(AppData.GameFragmentData.gameChosen != -1)
+                    AppData.GameFragmentData.gameChosen++;
+                if(AppData.EventsFragmentsData.gameChosen != -1)
+                    AppData.EventsFragmentsData.gameChosen++;
+                gamesDragAndDropList.notifyItemInserted(0);
             }
-            listToShow.add(0, newName);
-            crntList.notifyItemInserted(0);
+            else // selectListRadioGroup.getCheckedRadioButtonId() == R.id.eventsList
+            {
+                AppData.dbRepository.eventRepository.addEventAtStart(newName);
+                eventsDragAndDropList.notifyItemInserted(0);
+            }
         }
         else // whereToAdd.getCheckedRadioButtonId() == R.id.addToDown
         {
-            if (listToShow == AppData.gamesStringList)
-                AppData.games.add(new Game(newName));
-            listToShow.add(newName);
-            crntList.notifyItemInserted(listToShow.size() -1);
+            if (selectListRadioGroup.getCheckedRadioButtonId() == R.id.gamesList)
+            {
+                AppData.dbRepository.gameRepository.addGameAtEnd(newName);
+                gamesDragAndDropList.notifyItemInserted(listToShow.size() -1);
+            }
+            else // selectListRadioGroup.getCheckedRadioButtonId() == R.id.eventsList
+            {
+                AppData.dbRepository.eventRepository.addEventAtEnd(newName);
+                eventsDragAndDropList.notifyItemInserted(listToShow.size() -1);
+            }
         }
         eventOrGameEditText.setText("");
     }

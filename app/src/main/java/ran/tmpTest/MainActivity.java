@@ -5,17 +5,17 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
+
+import ran.tmpTest.db.DbRepository;
 import ran.tmpTest.sharedData.AppData;
-import ran.tmpTest.utils.Event;
-import ran.tmpTest.utils.saveInMemoryLists.EventsList;
-import ran.tmpTest.utils.saveInMemoryLists.GamesList;
+import ran.tmpTest.utils.EventInGame;
+
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-
 
 
 public class MainActivity extends AppCompatActivity
@@ -58,51 +58,31 @@ public class MainActivity extends AppCompatActivity
 
     private void getDataFromMemory()
     {
-        EventsList events = getDataFromMemory("events",EventsList.class);
-        if (events == null)
-            AppData.events = new ArrayList<>();
-        else
-            AppData.events = events.list;
-        GamesList games = getDataFromMemory("games",GamesList.class);
-        if ( games == null)
-            AppData.games = new ArrayList<>();
-        else
-            AppData.games = games.list;
-        AppData.makeGamesStringList();
-        GameFragment.gameChosen = sharedPreferences.getInt("gameChosenGameFragment",-1);
-        EventsFragment.gameChosen = sharedPreferences.getInt("gameChosenEventsFragment",-1);
-        AppData.clockRun = sharedPreferences.getBoolean("clockRun",false);
-        Event.GamePart gamePartChosen = getDataFromMemory("gamePartChosen", Event.GamePart.class);
+        AppData.GameFragmentData.gameChosen = sharedPreferences.getInt("gameChosenGameFragment",-1);
+        AppData.EventsFragmentsData.gameChosen = sharedPreferences.getInt("gameChosenEventsFragment",-1);
+        Log.d("MyApp","event fragment - game chosen = " + AppData.EventsFragmentsData.gameChosen);
+        EventInGame.GamePart gamePartChosen = getDataFromMemory("gamePartChosen", EventInGame.GamePart.class);
         if (gamePartChosen == null)
-            AppData.gamePartChosen = Event.GamePart.HALF_1;
+            AppData.GameFragmentData.gamePartChosen = EventInGame.GamePart.HALF_1;
         else
-            AppData.gamePartChosen = gamePartChosen;
-        Event.Team teamChosen = getDataFromMemory("teamChosen", Event.Team.class);
+            AppData.GameFragmentData.gamePartChosen = gamePartChosen;
+        EventInGame.Team teamChosen = getDataFromMemory("teamChosen", EventInGame.Team.class);
         if (teamChosen == null)
-            AppData.teamChosen = Event.Team.NON;
+            AppData.GameFragmentData.teamChosen = EventInGame.Team.NON;
         else
-            AppData.teamChosen = teamChosen;
-        AppData.playerChosenDigit1 = sharedPreferences.getInt("playerChosenDigit1",0);
-        AppData.playerChosenDigit2 = sharedPreferences.getInt("playerChosenDigit2",0);
+            AppData.GameFragmentData.teamChosen = teamChosen;
+        AppData.GameFragmentData.playerChosenDigit1 = sharedPreferences.getInt("playerChosenDigit1",0);
+        AppData.GameFragmentData.playerChosenDigit2 = sharedPreferences.getInt("playerChosenDigit2",0);
     }
 
     public void saveDataToMemory()
     {
-        saveDataToMemory("events",new EventsList(AppData.events));
-        saveDataToMemory("games",new GamesList(AppData.games));
-        editor.putBoolean("clockRun",AppData.clockRun);
-        if (AppData.clockRun)
-        {
-            editor.putInt("min", AppData.min);
-            editor.putInt("sec", AppData.sec);
-            editor.putLong("time", System.currentTimeMillis());
-        }
-        saveDataToMemory("teamChosen", AppData.teamChosen);
-        saveDataToMemory("gamePartChosen",AppData.gamePartChosen);
-        editor.putInt("gameChosenGameFragment",GameFragment.gameChosen);
-        editor.putInt("gameChosenEventsFragment",EventsFragment.gameChosen);
-        editor.putInt("playerChosenDigit1",AppData.playerChosenDigit1);
-        editor.putInt("playerChosenDigit2",AppData.playerChosenDigit2);
+        saveDataToMemory("teamChosen", AppData.GameFragmentData.teamChosen);
+        saveDataToMemory("gamePartChosen",AppData.GameFragmentData.gamePartChosen);
+        editor.putInt("gameChosenGameFragment",AppData.GameFragmentData.gameChosen);
+        editor.putInt("gameChosenEventsFragment",AppData.EventsFragmentsData.gameChosen);
+        editor.putInt("playerChosenDigit1",AppData.GameFragmentData.playerChosenDigit1);
+        editor.putInt("playerChosenDigit2",AppData.GameFragmentData.playerChosenDigit2);
         editor.apply();
     }
 
@@ -118,16 +98,16 @@ public class MainActivity extends AppCompatActivity
         public void run()
         {
             clockHandler.postDelayed(clockThread, 1000);
-            AppData.sec++;
-            if (AppData.sec == 60)
+            AppData.GameFragmentData.sec++;
+            if (AppData.GameFragmentData.sec == 60)
             {
-                AppData.min++;
-                if (AppData.min > CLOCK_MAX_VALUE)
+                AppData.GameFragmentData.min++;
+                if (AppData.GameFragmentData.min > CLOCK_MAX_VALUE)
                 {
                     stopClock();
                     return;
                 }
-                AppData.sec = 0;
+                AppData.GameFragmentData.sec = 0;
             }
             if (AppData.gameFragment != null)
                 if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
@@ -137,16 +117,18 @@ public class MainActivity extends AppCompatActivity
 
     public void startClock()
     {
-        AppData.clockRun = true;
+        AppData.GameFragmentData.clockRun = true;
         clockThread.run();
+        editor.putLong("clock", System.currentTimeMillis()).apply();
     }
 
     public void stopClock()
     {
-        AppData.clockRun = false;
+        AppData.GameFragmentData.clockRun = false;
+        editor.putLong("clock",0).apply();
         clockHandler.removeCallbacks(clockThread);
-        AppData.min = 0;
-        AppData.sec = -1;
+        AppData.GameFragmentData.min = 0;
+        AppData.GameFragmentData.sec = -1;
         if (AppData.gameFragment != null)
             if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
                 AppData.gameFragment.resetClock();
@@ -156,23 +138,22 @@ public class MainActivity extends AppCompatActivity
 
     private void clockCheck()
     {
-        if ( AppData.clockRun )
+        long clockTimeStamp = sharedPreferences.getLong("clock",0);
+        AppData.GameFragmentData.clockRun = (clockTimeStamp == 0) ? false : true;
+        if ( AppData.GameFragmentData.clockRun )
         {
-            AppData.min = sharedPreferences.getInt("min", 0);
-            AppData.sec = sharedPreferences.getInt("sec", 0);
-            long pastTime = sharedPreferences.getLong("time", 0);
-            int timeToAdd = (int) ((System.currentTimeMillis() - pastTime) / 1000);
-            AppData.sec += (timeToAdd % 60);
-            if (AppData.sec >= 60)
+            int timeToAdd = (int) ((System.currentTimeMillis() - clockTimeStamp) / 1000);
+            AppData.GameFragmentData.sec = (timeToAdd % 60);
+            if (AppData.GameFragmentData.sec >= 60)
             {
-                AppData.sec -= 60;
-                AppData.min +=  (timeToAdd / 60) + 1;
+                AppData.GameFragmentData.sec -= 60;
+                AppData.GameFragmentData.min =  (timeToAdd / 60) + 1;
             }
             else
-                AppData.min += (timeToAdd / 60) ;
-            if (AppData.min > CLOCK_MAX_VALUE )
+                AppData.GameFragmentData.min = (timeToAdd / 60) ;
+            if (AppData.GameFragmentData.min > CLOCK_MAX_VALUE )
             {
-                AppData.clockRun = false;
+                AppData.GameFragmentData.clockRun = false;
                 stopClock();
             }
             else

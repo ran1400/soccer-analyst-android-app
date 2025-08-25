@@ -37,7 +37,7 @@ public class DragAndDropList extends RecyclerView.Adapter<DragAndDropList.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
     {
         holder.textView.setText(listData.get(position));
-        if (AppData.listChoosePosition == position)
+        if (AppData.SettingFragmentData.listChoosePosition == position)
             holder.textView.setTextColor(Color.RED);
         else
             holder.textView.setTextColor(Color.BLACK);
@@ -64,23 +64,23 @@ public class DragAndDropList extends RecyclerView.Adapter<DragAndDropList.ViewHo
         @Override
         public void onClick(View view)
         {
-            if (AppData.listChoosePosition == -1) // none choose item from the list before click
+            if (AppData.SettingFragmentData.listChoosePosition == -1) // none choose item from the list before click
             {
-                AppData.listChoosePosition = getAdapterPosition();
-                notifyItemChanged(AppData.listChoosePosition);
+                AppData.SettingFragmentData.listChoosePosition = getAdapterPosition();
+                notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
                 AppData.settingFragment.changeToUserChoseItemMode();
             }
-            else if (AppData.listChoosePosition == getAdapterPosition()) // the item has clicked was choose already
+            else if (AppData.SettingFragmentData.listChoosePosition == getAdapterPosition()) // the item has clicked was choose already
             {
                 AppData.settingFragment.changeToNoneChoseItemMode();
                 notifyItemChanged(getAdapterPosition());
             }
             else
             {
-                int prevChoosePosition = AppData.listChoosePosition;
-                AppData.listChoosePosition = getAdapterPosition();
+                int prevChoosePosition = AppData.SettingFragmentData.listChoosePosition;
+                AppData.SettingFragmentData.listChoosePosition = getAdapterPosition();
                 notifyItemChanged(prevChoosePosition);
-                notifyItemChanged(AppData.listChoosePosition);
+                notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
                 AppData.settingFragment.updateEventOrGameEditText();
             }
         }

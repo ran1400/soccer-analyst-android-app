@@ -18,32 +18,35 @@ import android.widget.Toast;
 import ran.tmpTest.GameFragment;
 import ran.tmpTest.R;
 import ran.tmpTest.sharedData.AppData;
-import ran.tmpTest.utils.Event;
-import ran.tmpTest.utils.Game;
+import ran.tmpTest.utils.EventInGame;
 
 
 public class EventAlertDialog extends AppCompatDialogFragment
 {
-    private Event eventToEdit; // if null -> user want create new event
+    private EventInGame eventToEdit; // if null -> user want create new event
     private NumberPicker playerDigit1NumberPicker, playerDigit2NumberPicker;
     private ConstraintLayout eventsScrollView;
     private RadioGroup eventsRadioGroup;
     private RadioButton specialEventRadioButton;
     private EditText specialEventEditText;
     private TextView clockTextView,gamePartTextView;
-    private Event.Team teamChosen;
+    private EventInGame.Team teamChosen;
     private final int PERSONAL_EVENT = -1;
     private int getEventChosenHelper;
     private View view;
     private Button saveBtn,cancelBtn;
 
-    public EventAlertDialog() //create new event
+    long gameId;
+
+    public EventAlertDialog(long gameId) //create new event
     {
+        this.gameId = gameId;
         eventToEdit = null;
     }
 
-    public EventAlertDialog(Event eventToEdit) // edit event
+    public EventAlertDialog(long gameId,EventInGame eventToEdit) // edit event
     {
+        this.gameId = gameId;
         this.eventToEdit = eventToEdit;
     }
 
@@ -110,13 +113,13 @@ public class EventAlertDialog extends AppCompatDialogFragment
         switch(checkedId)
         {
             case R.id.noTeam :
-                teamChosen = Event.Team.NON;
+                teamChosen = EventInGame.Team.NON;
                 break;
             case R.id.home_team:
-                teamChosen = Event.Team.HOME_TEAM;
+                teamChosen = EventInGame.Team.HOME_TEAM;
                 break;
             case R.id.away_team:
-                teamChosen = Event.Team.AWAY_TEAM;
+                teamChosen = EventInGame.Team.AWAY_TEAM;
         }
     }
 
@@ -141,33 +144,33 @@ public class EventAlertDialog extends AppCompatDialogFragment
             if ( eventChosen == PERSONAL_EVENT)
                 eventToEdit.eventName = specialEventEditText.getText().toString();
             else
-                eventToEdit.eventName = AppData.events.get(eventChosen);
-            AppData.eventsFragment.notifyEventEditChanged();
+                eventToEdit.eventName = AppData.dbRepository.eventRepository.eventNames.get(eventChosen);
+            AppData.eventsFragment.showGameEvents();
+            AppData.dbRepository.eventInGameRepository.updateEventInGame(eventToEdit);
         }
-        else
+        else //user want to make new event
         {
-            Event event = makeEvent(eventChosen);
-            Game crntGame = AppData.games.get(GameFragment.gameChosen);
-            crntGame.events.add(event);
-            AppData.gameFragment.showEventAddedSnackBar(crntGame);
+            EventInGame eventInGame = makeEvent(eventChosen);
+            AppData.dbRepository.eventInGameRepository.addEventToGame(eventInGame);
+            AppData.gameFragment.showEventAddedSnackBar(eventInGame);
         }
         dismiss();
     }
 
-    private Event makeEvent(int eventChosen)
+    private EventInGame makeEvent(int eventChosen)
     {
         int playerNum = getPlayerNumber();
-        Event.GamePart gamePart = AppData.gamePartChosen;
-        Event.Team team = teamChosen;
+        EventInGame.GamePart gamePart = AppData.GameFragmentData.gamePartChosen;
+        EventInGame.Team team = teamChosen;
         String eventName;
         if ( eventChosen == PERSONAL_EVENT)
             eventName = specialEventEditText.getText().toString();
         else
-            eventName = AppData.events.get(eventChosen);
-        if (AppData.clockRun)
-            return new Event(gamePart,team,AppData.min,AppData.sec,playerNum,eventName);
+            eventName = AppData.dbRepository.eventRepository.eventNames.get(eventChosen);
+        if (AppData.GameFragmentData.clockRun)
+            return new EventInGame(gameId,gamePart,team,AppData.GameFragmentData.min,AppData.GameFragmentData.sec,playerNum,eventName);
         else
-            return new Event(gamePart,team,0,0,playerNum,eventName);
+            return new EventInGame(gameId,gamePart,team,0,0,playerNum,eventName);
     }
 
     private int getEventChosen()
@@ -190,20 +193,20 @@ public class EventAlertDialog extends AppCompatDialogFragment
         clockTextView.setText(text);
     }
 
-    public void setTeamChosen(Event.Team teamChosen)
+    public void setTeamChosen(EventInGame.Team teamChosen)
     {
         this.teamChosen = teamChosen;
         RadioButton teamChosenRadioBtnToCheck;
-        if (teamChosen == Event.Team.NON)
+        if (teamChosen == EventInGame.Team.NON)
             teamChosenRadioBtnToCheck = view.findViewById(R.id.noTeam);
-        else if (teamChosen == Event.Team.HOME_TEAM)
+        else if (teamChosen == EventInGame.Team.HOME_TEAM)
             teamChosenRadioBtnToCheck = view.findViewById(R.id.home_team);
         else // (teamChosen == Event.Team.AWAY_TEAM)
             teamChosenRadioBtnToCheck = view.findViewById(R.id.away_team);
         teamChosenRadioBtnToCheck.setChecked(true);
     }
 
-    public void setGamePartChosen(Event.GamePart gamePartChosen)
+    public void setGamePartChosen(EventInGame.GamePart gamePartChosen)
     {
         switch( gamePartChosen )
         {
@@ -234,16 +237,16 @@ public class EventAlertDialog extends AppCompatDialogFragment
 
     public void setDefaultClockAndPickers()
     {
-        if(AppData.clockRun)
+        if(AppData.GameFragmentData.clockRun)
         {
             String clockText = AppData.gameFragment.makeClockText();
             clockTextView.setText(clockText);
         }
         else
             clockTextView.setText("00:00");
-        setGamePartChosen(AppData.gamePartChosen);
-        setTeamChosen(AppData.teamChosen);
-        setPlayerDigitNumbers(AppData.playerChosenDigit1,AppData.playerChosenDigit2);
+        setGamePartChosen(AppData.GameFragmentData.gamePartChosen);
+        setTeamChosen(AppData.GameFragmentData.teamChosen);
+        setPlayerDigitNumbers(AppData.GameFragmentData.playerChosenDigit1,AppData.GameFragmentData.playerChosenDigit2);
     }
     private void showKeyboard(View view)
     {
@@ -266,16 +269,16 @@ public class EventAlertDialog extends AppCompatDialogFragment
 
     private int addEvents()
     {
-        if (AppData.events.size() == 0 )
+        if (AppData.dbRepository.eventRepository.eventNames.size() == 0 )
             return -1;
         RadioButton button = null;
-        for (int i = 0; i < AppData.events.size() ; i++)
+        for(String eventName : AppData.dbRepository.eventRepository.eventNames)
         {
             button = new RadioButton(getActivity());
-            button.setText(AppData.events.get(i));
+            button.setText(eventName);
             eventsRadioGroup.addView(button);
         }
-        return button.getId() - AppData.events.size() + 1;
+        return button.getId() - AppData.dbRepository.eventRepository.eventNames.size() + 1;
     }
 
     public void setPlayerNumPickers0To9()

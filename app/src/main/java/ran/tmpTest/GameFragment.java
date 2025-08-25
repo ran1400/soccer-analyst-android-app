@@ -28,13 +28,11 @@ import java.util.List;
 
 import ran.tmpTest.alertDialogs.EventAlertDialog;
 import ran.tmpTest.sharedData.AppData;
-import ran.tmpTest.utils.Event;
-import ran.tmpTest.utils.Game;
+import ran.tmpTest.utils.EventInGame;
 
 
 public class GameFragment extends Fragment
 {
-    public static int gameChosen;
     private View view;
     private TextView clockTextView, msgToUserTextView;
     private ImageButton playBtn,stopBtn;
@@ -69,28 +67,28 @@ public class GameFragment extends Fragment
         setPlayerNumPickers();
         createGamesDropDownList();
         setLayoutSize(eventsScrollView,35);
-        createEventButtons(view,AppData.events);
-        playerDigit1NumberPicker.setValue(AppData.playerChosenDigit1);
-        playerDigit2NumberPicker.setValue(AppData.playerChosenDigit2);
+        createEventButtons(view,AppData.dbRepository.eventRepository.eventNames);
+        playerDigit1NumberPicker.setValue(AppData.GameFragmentData.playerChosenDigit1);
+        playerDigit2NumberPicker.setValue(AppData.GameFragmentData.playerChosenDigit2);
         setGamePart();
         setTeamChosen();
-        if (AppData.games.isEmpty() == false && AppData.events.isEmpty() == false)
+        if (!AppData.dbRepository.gameRepository.gameNames.isEmpty() && !AppData.dbRepository.eventRepository.eventNames.isEmpty())
             msgToUserTextView.setVisibility(View.INVISIBLE);
         return view;
     }
     public void onPause()
     {
         super.onPause();
-        AppData.playerChosenDigit1 = playerDigit1NumberPicker.getValue();
-        AppData.playerChosenDigit2 = playerDigit2NumberPicker.getValue();
+        AppData.GameFragmentData.playerChosenDigit1 = playerDigit1NumberPicker.getValue();
+        AppData.GameFragmentData.playerChosenDigit2 = playerDigit2NumberPicker.getValue();
     }
 
     public void onResume()
     {
         super.onResume();
-        if(GameFragment.gameChosen != -1)
-            choseGameDropDownList.setSelection(GameFragment.gameChosen);
-        if (AppData.clockRun)
+        if(AppData.GameFragmentData.gameChosen != -1)
+            choseGameDropDownList.setSelection(AppData.GameFragmentData.gameChosen);
+        if (AppData.GameFragmentData.clockRun)
         {
             playBtn.setVisibility(View.INVISIBLE);
             updateClockText();
@@ -105,24 +103,25 @@ public class GameFragment extends Fragment
         {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
             {
-                GameFragment.gameChosen = position;
+                AppData.GameFragmentData.gameChosen = position;
             }
             public void onNothingSelected(AdapterView<?> adapterView)
             {
-                GameFragment.gameChosen = -1;
+                AppData.GameFragmentData.gameChosen = -1;
             }
         };
     }
     public void specialEventBtn()
     {
-        if(AppData.games.isEmpty())
+        if(AppData.dbRepository.gameRepository.gameNames.isEmpty())
         {
             Toast.makeText(getActivity(), R.string.addGameInTheSettings, Toast.LENGTH_SHORT).show();
             return;
         }
-        AppData.playerChosenDigit1 = playerDigit1NumberPicker.getValue();
-        AppData.playerChosenDigit2 = playerDigit2NumberPicker.getValue();
-        EventAlertDialog eventAlertDialog = new EventAlertDialog();
+        AppData.GameFragmentData.playerChosenDigit1 = playerDigit1NumberPicker.getValue();
+        AppData.GameFragmentData.playerChosenDigit2 = playerDigit2NumberPicker.getValue();
+        long gameId = AppData.dbRepository.gameRepository.gameIds.get(AppData.GameFragmentData.gameChosen);
+        EventAlertDialog eventAlertDialog = new EventAlertDialog(gameId);
         eventAlertDialog.show(AppData.mainActivity.getSupportFragmentManager(),"");
     }
 
@@ -138,19 +137,19 @@ public class GameFragment extends Fragment
         switch(checkedId)
         {
             case R.id.noTeam :
-                AppData.teamChosen = Event.Team.NON;
+                AppData.GameFragmentData.teamChosen = EventInGame.Team.NON;
                 break;
             case R.id.home_team:
-                AppData.teamChosen = Event.Team.HOME_TEAM;
+                AppData.GameFragmentData.teamChosen = EventInGame.Team.HOME_TEAM;
                 break;
             case R.id.away_team:
-                AppData.teamChosen = Event.Team.AWAY_TEAM;
+                AppData.GameFragmentData.teamChosen = EventInGame.Team.AWAY_TEAM;
         }
     }
 
     public void setGamePart()
     {
-        switch(AppData.gamePartChosen)
+        switch(AppData.GameFragmentData.gamePartChosen)
         {
             case HALF_1:
                 choseGamePartRadioGroup.check(R.id.half1);
@@ -168,7 +167,7 @@ public class GameFragment extends Fragment
 
     public void setTeamChosen()
     {
-        switch (AppData.teamChosen)
+        switch (AppData.GameFragmentData.teamChosen)
         {
             case NON :
                 choseTeamRadioGroup.check(R.id.noTeam);
@@ -186,16 +185,16 @@ public class GameFragment extends Fragment
         switch(checkedId)
         {
             case R.id.half1:
-                AppData.gamePartChosen = Event.GamePart.HALF_1;
+                AppData.GameFragmentData.gamePartChosen = EventInGame.GamePart.HALF_1;
                 break;
             case R.id.half2:
-                AppData.gamePartChosen = Event.GamePart.HALF_2;
+                AppData.GameFragmentData.gamePartChosen = EventInGame.GamePart.HALF_2;
                 break;
             case R.id.et1 :
-                AppData.gamePartChosen = Event.GamePart.EXTRA_TIME_1;
+                AppData.GameFragmentData.gamePartChosen = EventInGame.GamePart.EXTRA_TIME_1;
                 break;
             case R.id.et2 :
-                AppData.gamePartChosen = Event.GamePart.EXTRA_TIME_2;
+                AppData.GameFragmentData.gamePartChosen = EventInGame.GamePart.EXTRA_TIME_2;
                 break;
         }
     }
@@ -216,7 +215,7 @@ public class GameFragment extends Fragment
     public void createGamesDropDownList()
     {
         ArrayAdapter<String>adapter = new ArrayAdapter<>(getActivity(),
-                android.R.layout.simple_spinner_item,AppData.gamesStringList);
+                android.R.layout.simple_spinner_item,AppData.dbRepository.gameRepository.gameNames);
         adapter.setDropDownViewResource(R.layout.spinner_item);
         choseGameDropDownList.setAdapter(adapter);
         choseGameDropDownList.setOnItemSelectedListener(onSelectGameDropDownList());
@@ -239,7 +238,7 @@ public class GameFragment extends Fragment
 
     public void createEventButtons(View view , List<String> list)
     {
-        if (AppData.gamesStringList.size() == 0)
+        if (AppData.dbRepository.gameRepository.gameNames.size() == 0)
         {
             showMsgToUser(getString(R.string.addGameInTheSettings));
             return;
@@ -273,37 +272,37 @@ public class GameFragment extends Fragment
         }
         public void onClick(View v) //buttonListClick
         {
-            Event event = makeEvent(eventNum);
-            Game crntGame = AppData.games.get(GameFragment.gameChosen);
-            crntGame.events.add(event);
-            showEventAddedSnackBar(crntGame);
+            long gameId = AppData.dbRepository.gameRepository.gameIds.get(AppData.GameFragmentData.gameChosen);
+            EventInGame eventInGame = makeEvent(eventNum,gameId);
+            AppData.dbRepository.eventInGameRepository.addEventToGame(eventInGame);
+            showEventAddedSnackBar(eventInGame);
         }
     }
 
-    public void showEventAddedSnackBar(Game game)
+    public void showEventAddedSnackBar(EventInGame eventInGame)
     {
         Snackbar snackBar = Snackbar.make(AppData.mainActivity.getView(),R.string.theEventWasRecorded, Snackbar.LENGTH_SHORT);
         snackBar.setAction(R.string.cancel, new View.OnClickListener()
         {
             public void onClick(View view)
             {
-                game.removeLestEvent();
+                AppData.dbRepository.eventInGameRepository.deleteEventInGame(eventInGame);
                 AppData.mainActivity.showSnackBar(getString(R.string.theEventIsDeleted),700);
             }
         }).setDuration(1000).show();
     }
 
 
-    public Event makeEvent(int eventNum)
+    public EventInGame makeEvent(int eventNum,long gameId)
     {
         int playerNum = getPlayerNumber();
-        Event.GamePart gamePart = AppData.gamePartChosen;
-        Event.Team team = AppData.teamChosen;
-        String eventName = AppData.events.get(eventNum);
-        if (AppData.clockRun)
-            return new Event(gamePart,team,AppData.min,AppData.sec,playerNum,eventName);
+        EventInGame.GamePart gamePart = AppData.GameFragmentData.gamePartChosen;
+        EventInGame.Team team = AppData.GameFragmentData.teamChosen;
+        String eventName = AppData.dbRepository.eventRepository.eventNames.get(eventNum);
+        if (AppData.GameFragmentData.clockRun)
+            return new EventInGame(gameId,gamePart,team,AppData.GameFragmentData.min,AppData.GameFragmentData.sec,playerNum,eventName);
         else
-            return new Event(gamePart,team,0,0,playerNum,eventName);
+            return new EventInGame(gameId,gamePart,team,0,0,playerNum,eventName);
     }
 
     public void playBtn()
@@ -332,14 +331,14 @@ public class GameFragment extends Fragment
     public static String makeClockText()
     {
         String minText,secText;
-        if (AppData.min  > 9)
-            minText = String.valueOf(AppData.min);
+        if (AppData.GameFragmentData.min  > 9)
+            minText = String.valueOf(AppData.GameFragmentData.min);
         else
-            minText = "0" + AppData.min;
-        if (AppData.sec > 9)
-            secText = String.valueOf(AppData.sec);
+            minText = "0" + AppData.GameFragmentData.min;
+        if (AppData.GameFragmentData.sec > 9)
+            secText = String.valueOf(AppData.GameFragmentData.sec);
         else
-            secText = "0" + AppData.sec;
+            secText = "0" + AppData.GameFragmentData.sec;
         return minText + ":" + secText;
     }
 }

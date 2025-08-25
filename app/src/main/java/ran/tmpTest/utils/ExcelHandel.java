@@ -18,11 +18,14 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.OutputStream;
-import java.util.List;
+import java.util.Collection;
 
-public class ExelHandel
+import ran.tmpTest.sharedData.AppData;
+
+public class ExcelHandel
 {
-    private Game game;
+    private long gameId;
+    private String gameName;
     private Uri uri;
     private Context context;
     private Cell cell;
@@ -30,9 +33,10 @@ public class ExelHandel
     private Workbook workbook = new HSSFWorkbook();
     private CellStyle headerCellStyle;
 
-    public ExelHandel(Game game,Context context,Uri uri)
+    public ExcelHandel(long gameId, String gameName, Context context, Uri uri)
     {
-        this.game = game;
+        this.gameId = gameId;
+        this.gameName = gameName;
         this.uri = uri;
         this.context = context;
     }
@@ -51,11 +55,11 @@ public class ExelHandel
         workbook = new XSSFWorkbook();
 
         setHeaderCellStyle();
-        sheet = workbook.createSheet(game.gameName);
+        sheet = workbook.createSheet(gameName);
         sheet.setColumnWidth(0, (7 * 400));
         sheet.setColumnWidth(1, (4 * 400));
         sheet.setColumnWidth(2, (7 * 400));
-        sheet.setColumnWidth(3, (6 * 400));
+        sheet.setColumnWidth(3, (8 * 400));
         sheet.setColumnWidth(4, (15 * 400));
 
         setHeaders();
@@ -70,8 +74,8 @@ public class ExelHandel
         String gamePart,team,playerNum;
         Row row;
         int rowNum = 1;
-        List<Event> events = game.events;
-        for (Event event : events)
+        Collection<EventInGame> events = AppData.dbRepository.eventInGameRepository.getEventsInGameWithBlocking(gameId);
+        for (EventInGame event : events)
         {
             switch (event.gamePart)
             {
