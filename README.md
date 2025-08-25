@@ -6,4 +6,4 @@ http://play.google.com/store/search?q=pub:Ran+Yehezkel
 
 screenshots :
 
-https://ran-y.me/soccer-analyst-screenshots
+https://ran-y.com/soccer-analyst-screenshots
