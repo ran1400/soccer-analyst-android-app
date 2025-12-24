@@ -251,9 +251,6 @@ public class SettingFragment extends Fragment
     }
     private void addBtn()
     {
-        AppData.dbRepository.gameRepository.test();
-        AppData.dbRepository.eventRepository.test();
-        AppData.dbRepository.eventInGameRepository.test();
         String newName = eventOrGameEditText.getText().toString();
         if (newName.isEmpty())
         {

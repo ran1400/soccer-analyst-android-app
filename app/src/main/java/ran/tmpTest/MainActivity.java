@@ -8,7 +8,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 
-import ran.tmpTest.db.DbRepository;
+
 import ran.tmpTest.sharedData.AppData;
 import ran.tmpTest.utils.EventInGame;
 
@@ -139,30 +139,23 @@ public class MainActivity extends AppCompatActivity
     private void clockCheck()
     {
         long clockTimeStamp = sharedPreferences.getLong("clock",0);
-        AppData.GameFragmentData.clockRun = (clockTimeStamp == 0) ? false : true;
-        if ( AppData.GameFragmentData.clockRun )
+        AppData.GameFragmentData.clockRun = clockTimeStamp != 0;
+        if (!AppData.GameFragmentData.clockRun)
+            return;
+        int timeToAdd = (int) ((System.currentTimeMillis() - clockTimeStamp) / 1000);
+        AppData.GameFragmentData.sec = (timeToAdd % 60);
+        AppData.GameFragmentData.min = (timeToAdd / 60) ;
+        if (AppData.GameFragmentData.min > CLOCK_MAX_VALUE )
         {
-            int timeToAdd = (int) ((System.currentTimeMillis() - clockTimeStamp) / 1000);
-            AppData.GameFragmentData.sec = (timeToAdd % 60);
-            if (AppData.GameFragmentData.sec >= 60)
-            {
-                AppData.GameFragmentData.sec -= 60;
-                AppData.GameFragmentData.min =  (timeToAdd / 60) + 1;
-            }
-            else
-                AppData.GameFragmentData.min = (timeToAdd / 60) ;
-            if (AppData.GameFragmentData.min > CLOCK_MAX_VALUE )
-            {
-                AppData.GameFragmentData.clockRun = false;
-                stopClock();
-            }
-            else
-            {
-                if (AppData.gameFragment != null)
-                    if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
-                        AppData.gameFragment.updateClockText();
-                clockThread.run();
-            }
+            AppData.GameFragmentData.clockRun = false;
+            stopClock();
+        }
+        else
+        {
+            if (AppData.gameFragment != null)
+                if (AppData.gameFragment.isAdded() && AppData.gameFragment.isVisible())
+                    AppData.gameFragment.updateClockText();
+            clockThread.run();
         }
     }
     public void showSnackBar(String msg, int time)
@@ -170,8 +163,6 @@ public class MainActivity extends AppCompatActivity
         Snackbar snackBar = Snackbar.make(mainActivityView, msg, Snackbar.LENGTH_SHORT);
         snackBar.setAction("", null).setDuration(time).show();
     }
-
-
 
 
     public void gameBtn(View view)

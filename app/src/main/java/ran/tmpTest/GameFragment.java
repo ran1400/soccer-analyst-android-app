@@ -66,7 +66,7 @@ public class GameFragment extends Fragment
         choseTeamRadioGroup.setOnCheckedChangeListener((group, checkedId) -> SetTeamValue(checkedId));
         setPlayerNumPickers();
         createGamesDropDownList();
-        setLayoutSize(eventsScrollView,35);
+        setLayoutSize(eventsScrollView,43);
         createEventButtons(view,AppData.dbRepository.eventRepository.eventNames);
         playerDigit1NumberPicker.setValue(AppData.GameFragmentData.playerChosenDigit1);
         playerDigit2NumberPicker.setValue(AppData.GameFragmentData.playerChosenDigit2);
