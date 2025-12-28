@@ -1,4 +1,4 @@
-package ran.tmpTest.db.daos;
+package ran.tmpTest.dataBase.daos;
 
 import androidx.room.Dao;
 import androidx.room.Insert;
@@ -8,7 +8,7 @@ import androidx.room.Delete;
 
 import java.util.List;
 
-import ran.tmpTest.db.entities.EventEntity;
+import ran.tmpTest.dataBase.entities.EventEntity;
 
 @Dao
 public interface EventDao

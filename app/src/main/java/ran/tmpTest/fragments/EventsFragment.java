@@ -1,4 +1,4 @@
-package ran.tmpTest;
+package ran.tmpTest.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -10,8 +10,9 @@ import android.os.Bundle;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-
+import ran.tmpTest.sharedData.EventsFragmentData;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
@@ -29,10 +30,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 
-import ran.tmpTest.alertDialogs.EventAlertDialog;
-import ran.tmpTest.sharedData.AppData;
-import ran.tmpTest.utils.EventInGame;
-import ran.tmpTest.utils.ExcelHandel;
+import ran.tmpTest.MyApp;
+import ran.tmpTest.R;
+import ran.tmpTest.alertDialogs.EventAlertDialogFragment;
+import ran.tmpTest.utils.dataStructures.EventInGame;
+import ran.tmpTest.utils.ExcelHandler;
 import ran.tmpTest.utils.lists.SwipeToDeleteList;
 
 import java.text.SimpleDateFormat;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
 import java.util.concurrent.Executors;
 
 
@@ -52,8 +55,8 @@ public class EventsFragment extends Fragment
     private SwipeToDeleteList swipeToDeleteList;
     private TextView msgToUser;
     private View view;
+    private ActivityResultLauncher<Intent> createFileLauncher;
 
-    ActivityResultLauncher<Intent> createFileLauncher;
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
@@ -64,18 +67,17 @@ public class EventsFragment extends Fragment
     {
         view = inflater.inflate(R.layout.fragment_events, container, false);
         saveFileBtn = view.findViewById(R.id.saveFileBtn);
-        AppData.eventsFragment = this;
         msgToUser = view.findViewById(R.id.msgToUser);
-        if (AppData.dbRepository.gameRepository.gameNames.isEmpty())
+        eventsList = view.findViewById(R.id.eventsList);
+        chooseGameDropDownList = view.findViewById(R.id.choseGameDropDownList);
+        if (MyApp.dbRepository.gameRepository.gameNames.isEmpty())
         {
             showMsgToUser(getString(R.string.theGamesListIsEmptyAddGameInTheSettings));
             saveFileBtn.setVisibility(View.INVISIBLE);
             return view;
         }
-        eventsList = view.findViewById(R.id.eventsList);
-        chooseGameDropDownList = view.findViewById(R.id.choseGameDropDownList);
         saveFileBtn.setOnClickListener(this::saveFileBtn);
-        swipeToDeleteList = new SwipeToDeleteList();
+        swipeToDeleteList = new SwipeToDeleteList(this);
         eventsList.setAdapter(swipeToDeleteList);
         eventsList.setLayoutManager(new LinearLayoutManager(view.getContext()));
         createEventsList();
@@ -87,8 +89,8 @@ public class EventsFragment extends Fragment
     public void onResume()
     {
         super.onResume();
-        if(AppData.EventsFragmentsData.gameChosen != -1)
-            chooseGameDropDownList.setSelection(AppData.EventsFragmentsData.gameChosen);
+        if(EventsFragmentData.gameChosen != -1)
+            chooseGameDropDownList.setSelection(EventsFragmentData.gameChosen);
     }
 
     private void showMsgToUser(String msg)
@@ -97,42 +99,40 @@ public class EventsFragment extends Fragment
         msgToUser.setVisibility(View.VISIBLE);
     }
 
-    public void userClickOnItem(int position) // user click on event for edit him
+    public void userClickOnEvent(int position) // user click on event to edit him
     {
-        long gameId = AppData.dbRepository.gameRepository.gameIds.get(AppData.EventsFragmentsData.gameChosen);
-        EventAlertDialog eventAlertDialog = new EventAlertDialog(gameId,listToShow.get(position));
-        eventAlertDialog.show(AppData.mainActivity.getSupportFragmentManager(),"");
+        long gameId = MyApp.dbRepository.gameRepository.gameIds.get(EventsFragmentData.gameChosen);
+        EventAlertDialogFragment eventAlertDialogFragment = new EventAlertDialogFragment(this,gameId,listToShow.get(position));
+        eventAlertDialogFragment.show(requireActivity().getSupportFragmentManager(),"");
     }
 
     private void userSwipeItemLeft(int position) // user swiped event to delete
     {
         EventInGame eventToRemove = listToShow.get(position);
-        swipeToDeleteList.listData.remove(position);
         listToShow.remove(position);
-        swipeToDeleteList.notifyItemRemoved(position);
+        swipeToDeleteList.removeItem(position);
         if(listToShow.isEmpty())
         {
             saveFileBtn.setVisibility(View.INVISIBLE);
             showMsgToUser(getString(R.string.noEventsHaveBeenRecordedYet));
         }
-        AppData.dbRepository.eventInGameRepository.deleteEventInGame(eventToRemove);
+        MyApp.dbRepository.eventInGameRepository.deleteEventInGame(eventToRemove);
         showEventRemoveSnackBar(position,eventToRemove);
     }
 
     private void showEventRemoveSnackBar(int position, EventInGame eventToRemove)
     {
-        Snackbar snackBar = Snackbar.make(AppData.mainActivity.getView(),R.string.theEventIsDeleted, Snackbar.LENGTH_LONG);
-        snackBar.setAction(R.string.cancel, new View.OnClickListener()
+        View myView = getView();
+        if (myView == null) // if the fragment is not on the screen
+            return;
+        Snackbar snackBar = Snackbar.make(myView,R.string.theEventIsDeleted, Snackbar.LENGTH_LONG);
+        snackBar.setAction(R.string.cancel, view ->
         {
-            public void onClick(View view)
-            {
-                if (listToShow.isEmpty())
-                    msgToUser.setVisibility(View.INVISIBLE); //remove the msg if the list is empty
-                listToShow.add(position,eventToRemove); //user decide to cancel the delete event action
-                swipeToDeleteList.listData.add(position,eventToRemove.toString());
-                swipeToDeleteList.notifyDataSetChanged();
-                AppData.dbRepository.eventInGameRepository.cancelDeleteEventInGame(eventToRemove);
-            }
+            if (listToShow.isEmpty())
+                msgToUser.setVisibility(View.INVISIBLE); //remove the msg if the list is empty
+            listToShow.add(position,eventToRemove); //user decide to cancel the delete event action
+            swipeToDeleteList.insertItem(position,eventToRemove.toString());
+            MyApp.dbRepository.eventInGameRepository.cancelDeleteEventInGame(eventToRemove);
         }).setDuration(1000).show();
     }
 
@@ -142,9 +142,11 @@ public class EventsFragment extends Fragment
     {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT)
         {
-            private Paint paint = new Paint();
+            private final Paint paint = new Paint();
             private TextView swipeToDeleteText;
-            public boolean onMove(RecyclerView recyclerView,RecyclerView.ViewHolder viewHolder,RecyclerView.ViewHolder target)
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target)
             {
                 return false;
             }
@@ -154,7 +156,10 @@ public class EventsFragment extends Fragment
                 userSwipeItemLeft(viewHolder.getAdapterPosition());
             }
 
-            public void onChildDraw(Canvas canvas,RecyclerView recyclerView,RecyclerView.ViewHolder viewHolder,
+
+            public void onChildDraw(@NonNull Canvas canvas,
+                                    @NonNull RecyclerView recyclerView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder,
                                     float dX, float dY, int actionState, boolean isCurrentlyActive)
             {
                 super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
@@ -174,7 +179,7 @@ public class EventsFragment extends Fragment
                     swipeToDeleteText.layout(0, 0, swipeToDeleteText.getMeasuredWidth(), swipeToDeleteText.getMeasuredHeight());
                 }
                 float textX = itemView.getRight() - swipeToDeleteText.getWidth() - 16; // Adjust padding;
-                float textY = itemView.getTop() + ((itemView.getBottom() - itemView.getTop() - swipeToDeleteText.getHeight()) / 2);
+                float textY = itemView.getTop() + ((float) (itemView.getBottom() - itemView.getTop() - swipeToDeleteText.getHeight()) / 2);
                 canvas.save();
                 canvas.translate(textX, textY);
                 swipeToDeleteText.draw(canvas);
@@ -189,12 +194,15 @@ public class EventsFragment extends Fragment
     {
         Executors.newSingleThreadExecutor().execute(() ->
         {
-            ExcelHandel excelHandel = new ExcelHandel(gameId,gameName,requireContext(),uri);
-            boolean success =  excelHandel.makeEventsFile();
+            ExcelHandler excelHandler = new ExcelHandler(gameId,gameName,requireContext(),uri);
+            boolean success =  excelHandler.makeEventsFile();
+            View myView = getView();
+            if (myView == null) // if the fragment is not on the screen
+                return;
             if (success)
-                AppData.mainActivity.showSnackBar(getString(R.string.theFileIsSaved),1000);
+                Snackbar.make(myView,R.string.theFileIsSaved,1000).show();
             else
-                AppData.mainActivity.showSnackBar(getString(R.string.failedToSaveTheFile),1000);
+                Snackbar.make(myView,R.string.failedToSaveTheFile,1000).show();
         });
     }
 
@@ -203,7 +211,7 @@ public class EventsFragment extends Fragment
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        intent.putExtra(Intent.EXTRA_TITLE,makeFileName(AppData.dbRepository.gameRepository.gameNames.get(AppData.EventsFragmentsData.gameChosen)));
+        intent.putExtra(Intent.EXTRA_TITLE,makeFileName(MyApp.dbRepository.gameRepository.gameNames.get(EventsFragmentData.gameChosen)));
         createFileLauncher.launch(intent);
     }
 
@@ -226,8 +234,8 @@ public class EventsFragment extends Fragment
                         Uri uri = result.getData().getData();
                         if (uri != null)
                         {
-                            String gameName = AppData.dbRepository.gameRepository.gameNames.get(AppData.EventsFragmentsData.gameChosen);
-                            long gameId = AppData.dbRepository.gameRepository.gameIds.get(AppData.EventsFragmentsData.gameChosen);
+                            String gameName = MyApp.dbRepository.gameRepository.gameNames.get(EventsFragmentData.gameChosen);
+                            long gameId = MyApp.dbRepository.gameRepository.gameIds.get(EventsFragmentData.gameChosen);
                             saveFile(gameName,gameId,uri); // do toasts
                         }
                     }
@@ -237,8 +245,10 @@ public class EventsFragment extends Fragment
 
     public void createChoseGameDropDownList()
     {
-        ArrayAdapter<String>adapter = new ArrayAdapter(getActivity(),
-                                                       android.R.layout.simple_spinner_item,AppData.dbRepository.gameRepository.gameNames);
+        ArrayAdapter<String>adapter = new ArrayAdapter<>(requireActivity(),
+                                                         android.R.layout.simple_spinner_item,
+                                                         MyApp.dbRepository.gameRepository.gameNames);
+
         adapter.setDropDownViewResource(R.layout.spinner_item);
         chooseGameDropDownList.setAdapter(adapter);
         chooseGameDropDownList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
@@ -247,19 +257,18 @@ public class EventsFragment extends Fragment
             {
                 Executors.newSingleThreadExecutor().execute(() ->
                 {
-                    AppData.EventsFragmentsData.gameChosen = position;
-                    long gameId = AppData.dbRepository.gameRepository.gameIds.get(AppData.EventsFragmentsData.gameChosen);
-                    listToShow = AppData.dbRepository.eventInGameRepository.getEventsInGameWithBlocking(gameId);
+                    EventsFragmentData.gameChosen = position;
+                    long gameId = MyApp.dbRepository.gameRepository.gameIds.get(EventsFragmentData.gameChosen);
+                    listToShow = MyApp.dbRepository.eventInGameRepository.getEventsInGameWithBlockingUI(gameId);
                     new Handler(Looper.getMainLooper()).post(() -> showGameEvents());
                 });
             }
             public void onNothingSelected(AdapterView<?> adapterView)
             {
-                AppData.EventsFragmentsData.gameChosen = -1;
+                EventsFragmentData.gameChosen = -1;
                 listToShow = null;
                 saveFileBtn.setVisibility(View.INVISIBLE);
-                swipeToDeleteList.listData = null;
-                swipeToDeleteList.notifyDataSetChanged();
+                swipeToDeleteList.removeList();
             }
         });
     }
@@ -269,17 +278,17 @@ public class EventsFragment extends Fragment
         if(listToShow.isEmpty())
         {
             saveFileBtn.setVisibility(View.INVISIBLE);
-            swipeToDeleteList.listData = null;
+            swipeToDeleteList.removeList();
             showMsgToUser(getString(R.string.noEventsHaveBeenRecordedYet));
         }
         else
         {
             msgToUser.setVisibility(View.INVISIBLE);
-            swipeToDeleteList.listData = new ArrayList<>();
-            saveFileBtn.setVisibility(View.VISIBLE);
+            ArrayList<String> swipeToDeleteData = new ArrayList<>();
             for (EventInGame event : listToShow)
-                swipeToDeleteList.listData.add(event.toString());
+                swipeToDeleteData.add(event.toString());
+            swipeToDeleteList.setNewList(swipeToDeleteData);
+            saveFileBtn.setVisibility(View.VISIBLE);
         }
-        swipeToDeleteList.notifyDataSetChanged();
     }
 }

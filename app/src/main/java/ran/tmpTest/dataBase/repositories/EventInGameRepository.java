@@ -1,30 +1,28 @@
-package ran.tmpTest.db.repositories;
-
-import android.util.Log;
+package ran.tmpTest.dataBase.repositories;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-import ran.tmpTest.db.AppDatabase;
-import ran.tmpTest.db.daos.EventInGameDao;
-import ran.tmpTest.db.entities.EventInGameEntity;
-import ran.tmpTest.utils.EventInGame;
+
+import ran.tmpTest.dataBase.AppDatabase;
+import ran.tmpTest.dataBase.daos.EventInGameDao;
+import ran.tmpTest.dataBase.entities.EventInGameEntity;
+import ran.tmpTest.utils.dataStructures.EventInGame;
 
 public class EventInGameRepository
 {
-    public final EventInGameDao eventInGameDao;
-    private Map<Long, List<EventInGame>> eventsInGame; //gamedId -> list of events
+    private final EventInGameDao eventInGameDao;
+    private final Map<Long, List<EventInGame>> eventsInGame; //gamedId -> list of events
+    private final ExecutorService executorService;
 
-    public EventInGameRepository(AppDatabase db)
+    public EventInGameRepository(AppDatabase db, ExecutorService executorService)
     {
         eventInGameDao = db.eventInGameDao();
         eventsInGame = new HashMap<Long,List<EventInGame>>();
+        this.executorService = executorService;
     }
     private EventInGameEntity toEntity(EventInGame event) {
         return new EventInGameEntity(
@@ -49,42 +47,34 @@ public class EventInGameRepository
         );
     }
 
-    public List<EventInGame> getEventsInGameWithBlocking(long gameId) // do not run on the main thread
+    public List<EventInGame> getEventsInGameWithBlockingUI(long gameId)// do not run on the main thread
     {
         List<EventInGame> events = eventsInGame.get(gameId);
         if (events != null)
             return events;
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<List<EventInGame>> future = executor.submit(() ->
-        {
-            List<EventInGameEntity> eventEntities = eventInGameDao.getEventsFromGame(gameId);
-            List<EventInGame> res = new ArrayList<>();
-            for(EventInGameEntity eventEntity : eventEntities)
-                res.add(fromEntity(eventEntity));
-            eventsInGame.put(gameId,res);
-            return res;
-        });
-        try {return future.get();}
-        catch(Exception e) {return null;} //TODO make error msg
+        List<EventInGameEntity> eventEntities = eventInGameDao.getEventsFromGame(gameId);
+        List<EventInGame> res = new ArrayList<>();
+        for(EventInGameEntity eventEntity : eventEntities)
+            res.add(fromEntity(eventEntity));
+        eventsInGame.put(gameId,res);
+        return res;
     }
 
     public void addEventToGame(EventInGame eventInGame)
     {
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
-            List<EventInGame> gameEvents = getEventsInGameWithBlocking(eventInGame.gameId);
-            long eventId = eventInGameDao.insertEvent(toEntity(eventInGame));
-            eventInGame.eventId = eventId;
+            List<EventInGame> gameEvents = getEventsInGameWithBlockingUI(eventInGame.gameId);
+            eventInGame.eventId = eventInGameDao.insertEvent(toEntity(eventInGame));
             gameEvents.add(eventInGame);
         });
-
     }
 
     public void deleteEventInGame(EventInGame eventInGame)
     {
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
-            List<EventInGame> gameEvents = getEventsInGameWithBlocking(eventInGame.gameId);
+            List<EventInGame> gameEvents = getEventsInGameWithBlockingUI(eventInGame.gameId);
             eventInGameDao.deleteEventById(eventInGame.eventId);
             gameEvents.remove(eventInGame);
         });
@@ -92,9 +82,8 @@ public class EventInGameRepository
 
     public void cancelDeleteEventInGame(EventInGame eventInGame)
     {
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
-            List<EventInGame> gameEvents = getEventsInGameWithBlocking(eventInGame.gameId);
             EventInGameEntity eventInGameEntity = toEntity(eventInGame);
             eventInGameEntity.eventId = eventInGame.eventId;
             eventInGameDao.insertEvent(eventInGameEntity);
@@ -103,7 +92,7 @@ public class EventInGameRepository
 
     public void updateEventInGame(EventInGame newEventInGame)
     {
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             EventInGame oldEvent = fromEntity(eventInGameDao.getEventInGame(newEventInGame.gameId));
             oldEvent.eventName = newEventInGame.eventName;

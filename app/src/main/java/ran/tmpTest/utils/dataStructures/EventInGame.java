@@ -1,7 +1,10 @@
-package ran.tmpTest.utils;
+package ran.tmpTest.utils.dataStructures;
 
+import androidx.annotation.NonNull;
+
+import ran.tmpTest.MyApp;
 import ran.tmpTest.R;
-import ran.tmpTest.sharedData.AppData;
+
 
 public class EventInGame
 {
@@ -44,6 +47,7 @@ public class EventInGame
         this.eventName = eventName;
     }
 
+    @NonNull
     public String toString()
     {
         String res;
@@ -62,9 +66,9 @@ public class EventInGame
         if (team != Team.NON)
         {
             if (this.team == Team.HOME_TEAM)
-                res += " (" + AppData.mainActivity.getString(R.string.homeTeam);
+                res += " (" + MyApp.getContext().getString(R.string.homeTeam);
             else //(team == Team.AWAY_TEAM)
-                res += " (" + AppData.mainActivity.getString(R.string.awayTeam);
+                res += " (" + MyApp.getContext().getString(R.string.awayTeam);
             if (playerNum == 0) //team is not null and player is null
                 return res + ") : " + eventName;
             else

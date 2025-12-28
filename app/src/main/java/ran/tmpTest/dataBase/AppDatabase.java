@@ -1,4 +1,4 @@
-package ran.tmpTest.db;
+package ran.tmpTest.dataBase;
 
 import android.content.Context;
 
@@ -6,12 +6,12 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.Database;
 
-import ran.tmpTest.db.daos.EventDao;
-import ran.tmpTest.db.daos.EventInGameDao;
-import ran.tmpTest.db.daos.GameDao;
-import ran.tmpTest.db.entities.EventEntity;
-import ran.tmpTest.db.entities.EventInGameEntity;
-import ran.tmpTest.db.entities.GameEntity;
+import ran.tmpTest.dataBase.daos.EventDao;
+import ran.tmpTest.dataBase.daos.EventInGameDao;
+import ran.tmpTest.dataBase.daos.GameDao;
+import ran.tmpTest.dataBase.entities.EventEntity;
+import ran.tmpTest.dataBase.entities.EventInGameEntity;
+import ran.tmpTest.dataBase.entities.GameEntity;
 
 @Database(entities = {GameEntity.class, EventInGameEntity.class, EventEntity.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase

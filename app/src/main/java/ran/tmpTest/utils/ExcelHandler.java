@@ -20,20 +20,22 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.OutputStream;
 import java.util.Collection;
 
-import ran.tmpTest.sharedData.AppData;
+import ran.tmpTest.MyApp;
+import ran.tmpTest.utils.dataStructures.EventInGame;
 
-public class ExcelHandel
+
+public class ExcelHandler
 {
-    private long gameId;
-    private String gameName;
-    private Uri uri;
-    private Context context;
+    private final long gameId;
+    private final String gameName;
+    private final Uri uri;
+    private final Context context;
     private Cell cell;
     private Sheet sheet;
     private Workbook workbook = new HSSFWorkbook();
     private CellStyle headerCellStyle;
 
-    public ExcelHandel(long gameId, String gameName, Context context, Uri uri)
+    public ExcelHandler(long gameId, String gameName, Context context, Uri uri)
     {
         this.gameId = gameId;
         this.gameName = gameName;
@@ -44,7 +46,7 @@ public class ExcelHandel
     {
         boolean isWorkbookWrittenIntoStorage;
 
-        // Check if available and not read only
+        // Check if external storage available and not read only
         if (!isExternalStorageAvailable() || isExternalStorageReadOnly())
         {
             Log.d("exelHandel", "Storage not available or read only");
@@ -74,7 +76,7 @@ public class ExcelHandel
         String gamePart,team,playerNum;
         Row row;
         int rowNum = 1;
-        Collection<EventInGame> events = AppData.dbRepository.eventInGameRepository.getEventsInGameWithBlocking(gameId);
+        Collection<EventInGame> events = MyApp.dbRepository.eventInGameRepository.getEventsInGameWithBlockingUI(gameId);
         for (EventInGame event : events)
         {
             switch (event.gamePart)

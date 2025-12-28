@@ -1,4 +1,4 @@
-package ran.tmpTest.db.daos;
+package ran.tmpTest.dataBase.daos;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -8,7 +8,7 @@ import androidx.room.Update;
 
 import java.util.List;
 
-import ran.tmpTest.db.entities.GameEntity;
+import ran.tmpTest.dataBase.entities.GameEntity;
 
 @Dao
 public interface GameDao

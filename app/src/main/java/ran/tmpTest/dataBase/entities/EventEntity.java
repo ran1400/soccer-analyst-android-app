@@ -1,4 +1,4 @@
-package ran.tmpTest.db.entities;
+package ran.tmpTest.dataBase.entities;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;

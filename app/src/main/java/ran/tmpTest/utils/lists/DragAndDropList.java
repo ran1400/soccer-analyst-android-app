@@ -9,7 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import ran.tmpTest.R;
-import ran.tmpTest.sharedData.AppData;
+import ran.tmpTest.fragments.SettingFragment;
+
 
 import java.util.List;
 
@@ -17,10 +18,12 @@ public class DragAndDropList extends RecyclerView.Adapter<DragAndDropList.ViewHo
 {
 
     List<String> listData;
+    SettingFragment settingFragment;
 
-    public DragAndDropList(List<String> listData)
+    public DragAndDropList(List<String> listData, SettingFragment settingFragment)
     {
         this.listData = listData;
+        this.settingFragment = settingFragment;
     }
 
     @NonNull
@@ -29,15 +32,14 @@ public class DragAndDropList extends RecyclerView.Adapter<DragAndDropList.ViewHo
     {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
         View view = layoutInflater.inflate(R.layout.drag_and_drop_list_item, parent, false);
-        ViewHolder viewHolder = new ViewHolder(view);
-        return viewHolder;
+        return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position)
     {
         holder.textView.setText(listData.get(position));
-        if (AppData.SettingFragmentData.listChoosePosition == position)
+        if (settingFragment.listChoosePosition == position)
             holder.textView.setTextColor(Color.RED);
         else
             holder.textView.setTextColor(Color.BLACK);
@@ -49,7 +51,7 @@ public class DragAndDropList extends RecyclerView.Adapter<DragAndDropList.ViewHo
         return listData.size();
     }
 
-    protected class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
 
         TextView textView;
@@ -64,24 +66,24 @@ public class DragAndDropList extends RecyclerView.Adapter<DragAndDropList.ViewHo
         @Override
         public void onClick(View view)
         {
-            if (AppData.SettingFragmentData.listChoosePosition == -1) // none choose item from the list before click
+            if (settingFragment.listChoosePosition == -1) // none choose item from the list before click
             {
-                AppData.SettingFragmentData.listChoosePosition = getAdapterPosition();
-                notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
-                AppData.settingFragment.changeToUserChoseItemMode();
+                settingFragment.listChoosePosition = getAdapterPosition();
+                notifyItemChanged(settingFragment.listChoosePosition);
+                settingFragment.changeToUserChoseItemMode();
             }
-            else if (AppData.SettingFragmentData.listChoosePosition == getAdapterPosition()) // the item has clicked was choose already
+            else if (settingFragment.listChoosePosition == getAdapterPosition()) // the item has clicked was choose already
             {
-                AppData.settingFragment.changeToNoneChoseItemMode();
+                settingFragment.changeToNoneChoseItemMode();
                 notifyItemChanged(getAdapterPosition());
             }
             else
             {
-                int prevChoosePosition = AppData.SettingFragmentData.listChoosePosition;
-                AppData.SettingFragmentData.listChoosePosition = getAdapterPosition();
+                int prevChoosePosition = settingFragment.listChoosePosition;
+                settingFragment.listChoosePosition = getAdapterPosition();
                 notifyItemChanged(prevChoosePosition);
-                notifyItemChanged(AppData.SettingFragmentData.listChoosePosition);
-                AppData.settingFragment.updateEventOrGameEditText();
+                notifyItemChanged(settingFragment.listChoosePosition);
+                settingFragment.updateEventOrGameEditText();
             }
         }
 

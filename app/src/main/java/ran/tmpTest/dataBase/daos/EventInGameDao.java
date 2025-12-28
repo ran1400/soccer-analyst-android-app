@@ -1,14 +1,13 @@
-package ran.tmpTest.db.daos;
+package ran.tmpTest.dataBase.daos;
 
 import androidx.room.Dao;
-import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
 import java.util.List;
 
-import ran.tmpTest.db.entities.EventInGameEntity;
+import ran.tmpTest.dataBase.entities.EventInGameEntity;
 
 @Dao
 public interface EventInGameDao

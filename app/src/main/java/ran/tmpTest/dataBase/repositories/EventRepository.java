@@ -1,27 +1,24 @@
-package ran.tmpTest.db.repositories;
-
-import android.util.Log;
+package ran.tmpTest.dataBase.repositories;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-import ran.tmpTest.db.AppDatabase;
-import ran.tmpTest.db.daos.EventDao;
-import ran.tmpTest.db.entities.EventEntity;
-import ran.tmpTest.sharedData.AppData;
+import ran.tmpTest.dataBase.AppDatabase;
+import ran.tmpTest.dataBase.daos.EventDao;
+import ran.tmpTest.dataBase.entities.EventEntity;
 
 public class EventRepository
 {
-    public final EventDao eventDao;
+    private final EventDao eventDao;
     public List<String> eventNames;
-    public List<Long> eventIds;
+    private List<Long> eventIds;
+    private final ExecutorService executorService;
 
-    public EventRepository(AppDatabase db)
+    public EventRepository(AppDatabase db, ExecutorService executorService)
     {
         eventDao = db.eventDao();
-        Executors.newSingleThreadExecutor().execute(() ->
+        this.executorService = executorService;
+        executorService.execute(() ->
         {
             eventNames = eventDao.getAllEventNames();
             eventIds = eventDao.getAllEventIds();
@@ -32,7 +29,7 @@ public class EventRepository
     public void addEventAtStart(String eventName)
     {
         eventNames.add(0,eventName);
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long newOrderIndex;
             if (eventNames.size() == 1) // was empty
@@ -41,7 +38,7 @@ public class EventRepository
                 newOrderIndex = eventDao.getMinOrderIndex() - 10;
             EventEntity event = new EventEntity(eventName,newOrderIndex);
             long eventId = eventDao.insertEvent(event);
-            eventIds.add(0,eventId);
+            eventIds.add(0,eventId); //equal to add first
         });
 
     }
@@ -49,7 +46,7 @@ public class EventRepository
     public void addEventAtEnd(String eventName)
     {
         eventNames.add(eventName);
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long newOrderIndex;
             if (eventNames.size() == 1) // was empty
@@ -66,50 +63,48 @@ public class EventRepository
 
     public void moveEvent(int fromIndex,int toIndex)
     {
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long eventId = eventIds.get(fromIndex);
-            EventEntity event = eventDao.getEventById(eventId);
+            EventEntity eventToMove = eventDao.getEventById(eventId);
             eventNames.remove(fromIndex);
             eventIds.remove(fromIndex);
-            eventNames.add(toIndex,event.eventName);
+            eventNames.add(toIndex,eventToMove.eventName);
             eventIds.add(toIndex,eventId);
-            if (toIndex == 0)
-                event.orderIndex = eventDao.getMinOrderIndex() - 10;
-            else if (toIndex == eventNames.size()-1)
-                event.orderIndex = eventDao.getMaxOrderIndex() + 10;
+            if (toIndex == 0) //first
+                eventToMove.orderIndex = eventDao.getMinOrderIndex() - 10;
+            else if (toIndex == eventNames.size()-1) //last
+                eventToMove.orderIndex = eventDao.getMaxOrderIndex() + 10;
             else
             {
                 long eventIndexBeforeMe = eventIds.get(toIndex-1);
                 long eventIndexAfterMe = eventIds.get(toIndex);
-                EventEntity before = eventDao.getEventById(eventIndexBeforeMe);
-                EventEntity after = eventDao.getEventById(eventIndexAfterMe);
-                long gap = after.orderIndex - before.orderIndex;
+                EventEntity eventBeforeMe = eventDao.getEventById(eventIndexBeforeMe);
+                EventEntity eventAfterMe = eventDao.getEventById(eventIndexAfterMe);
+                long gap = eventAfterMe.orderIndex - eventBeforeMe.orderIndex;
                 if (gap > 1)
-                    event.orderIndex = before.orderIndex + gap / 2;
+                    eventToMove.orderIndex = eventBeforeMe.orderIndex + gap / 2;
                 else
                 {
                     reindexEvents();
-                    before = eventDao.getEventById(eventIndexBeforeMe);
-                    after = eventDao.getEventById(eventIndexAfterMe);
-                    gap = after.orderIndex - before.orderIndex;
-                    event.orderIndex = before.orderIndex + gap / 2;
+                    eventBeforeMe = eventDao.getEventById(eventIndexBeforeMe);
+                    eventAfterMe = eventDao.getEventById(eventIndexAfterMe);
+                    gap = eventAfterMe.orderIndex - eventBeforeMe.orderIndex;
+                    eventToMove.orderIndex = eventBeforeMe.orderIndex + gap / 2;
                 }
             }
-            eventDao.updateEvent(event);
+            eventDao.updateEvent(eventToMove);
         });
-
     }
 
     public void updateEventName(int index,String newName)
     {
         eventNames.set(index,newName);
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long eventId = eventIds.get(index);
             eventDao.updateEventName(eventId,newName);
         });
-
     }
 
     public void deleteEvent(int index)
@@ -117,7 +112,7 @@ public class EventRepository
         long eventId = eventIds.get(index);
         eventIds.remove(index);
         eventNames.remove(index);
-        Executors.newSingleThreadExecutor().execute(() -> eventDao.deleteEventById(eventId));
+        executorService.execute(() -> eventDao.deleteEventById(eventId));
     }
 
     private void reindexEvents()

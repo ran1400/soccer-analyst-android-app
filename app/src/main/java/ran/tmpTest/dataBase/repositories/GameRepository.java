@@ -1,31 +1,25 @@
-package ran.tmpTest.db.repositories;
+package ran.tmpTest.dataBase.repositories;
 
-import android.util.Log;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-import ran.tmpTest.db.AppDatabase;
-import ran.tmpTest.db.daos.GameDao;
-import ran.tmpTest.db.entities.EventInGameEntity;
-import ran.tmpTest.db.entities.GameEntity;
-import ran.tmpTest.sharedData.AppData;
-import ran.tmpTest.utils.EventInGame;
+import ran.tmpTest.dataBase.AppDatabase;
+import ran.tmpTest.dataBase.daos.GameDao;
+import ran.tmpTest.dataBase.entities.GameEntity;
 
 public class GameRepository
 {
 
-    public final GameDao gameDao;
+    private final GameDao gameDao;
     public List<String> gameNames;
     public List<Long> gameIds;
+    private final ExecutorService executorService;
 
-    public GameRepository(AppDatabase db)
+    public GameRepository(AppDatabase db, ExecutorService executorService)
     {
         gameDao = db.gameDao();
-        Executors.newSingleThreadExecutor().execute(() ->
+        this.executorService = executorService;
+        executorService.execute(() ->
         {
             gameNames = gameDao.getAllGameNames();
             gameIds = gameDao.getAllGameIds();
@@ -35,7 +29,7 @@ public class GameRepository
     public void addGameAtEnd(String gameName)
     {
         gameNames.add(gameName);
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long newOrderIndex;
             if (gameNames.size() == 1) // was empty
@@ -52,7 +46,7 @@ public class GameRepository
     public void addGameAtStart(String gameName)
     {
         gameNames.add(0,gameName);
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long newOrderIndex;
             if (gameNames.size() == 1) // was empty
@@ -79,37 +73,37 @@ public class GameRepository
 
     public void moveGame(int fromIndex,int toIndex)
     {
-        Executors.newSingleThreadExecutor().execute(() ->
+        executorService.execute(() ->
         {
             long gameId = gameIds.get(fromIndex);
-            GameEntity game = gameDao.getGameById(gameId);
+            GameEntity gameToMove = gameDao.getGameById(gameId);
             gameNames.remove(fromIndex);
             gameIds.remove(fromIndex);
-            gameNames.add(toIndex, game.gameName);
+            gameNames.add(toIndex, gameToMove.gameName);
             gameIds.add(toIndex,gameId);
             if (toIndex == 0)
-                game.orderIndex = gameDao.getMinOrderIndex() - 10;
+                gameToMove.orderIndex = gameDao.getMinOrderIndex() - 10;
             else if (toIndex == gameNames.size()-1)
-                game.orderIndex = gameDao.getMaxOrderIndex() + 10;
+                gameToMove.orderIndex = gameDao.getMaxOrderIndex() + 10;
             else
             {
                 long gameIndexBeforeMe = gameIds.get(toIndex-1);
                 long gameIndexAfterMe = gameIds.get(toIndex);
-                GameEntity before = gameDao.getGameById(gameIndexBeforeMe);
-                GameEntity after = gameDao.getGameById(gameIndexAfterMe);
-                long gap = after.orderIndex - before.orderIndex;
+                GameEntity gameBeforeMe = gameDao.getGameById(gameIndexBeforeMe);
+                GameEntity gameAfterMe = gameDao.getGameById(gameIndexAfterMe);
+                long gap = gameAfterMe.orderIndex - gameBeforeMe.orderIndex;
                 if (gap > 1)
-                    game.orderIndex = before.orderIndex + gap / 2;
+                    gameToMove.orderIndex = gameBeforeMe.orderIndex + gap / 2;
                 else
                 {
                     reindexGames();
-                    before = gameDao.getGameById(gameIndexBeforeMe);
-                    after = gameDao.getGameById(gameIndexAfterMe);
-                    gap = after.orderIndex - before.orderIndex;
-                    game.orderIndex = before.orderIndex + gap / 2;
+                    gameBeforeMe = gameDao.getGameById(gameIndexBeforeMe);
+                    gameAfterMe = gameDao.getGameById(gameIndexAfterMe);
+                    gap = gameAfterMe.orderIndex - gameBeforeMe.orderIndex;
+                    gameToMove.orderIndex = gameBeforeMe.orderIndex + gap / 2;
                 }
             }
-            gameDao.updateGame(game);
+            gameDao.updateGame(gameToMove);
         });
     }
 
@@ -119,14 +113,14 @@ public class GameRepository
         long gameId = gameIds.get(index);
         gameIds.remove(index);
         gameNames.remove(index);
-        Executors.newSingleThreadExecutor().execute(() -> gameDao.deleteGameById(gameId));
+        executorService.execute(() -> gameDao.deleteGameById(gameId));
     }
 
     public void updateGameName(int index,String gameName)
     {
         gameNames.set(index,gameName);
         long gameId = gameIds.get(index);
-        Executors.newSingleThreadExecutor().execute(() -> gameDao.updateGameName(gameId,gameName));
+        executorService.execute(() -> gameDao.updateGameName(gameId,gameName));
     }
 
 }
